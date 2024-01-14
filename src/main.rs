@@ -1,6 +1,5 @@
 use slint::ComponentHandle;
 use slint::LogicalPosition;
-use slint::LogicalSize;
 
 slint::include_modules!();
 fn main() {
@@ -19,10 +18,5 @@ fn main() {
         main.window().set_position(LogicalPosition::new(logical_pos.x + offset_x,logical_pos.y + offset_y));
     });
 
-    let handle3 = main.as_weak();
-    main.on_resize_win(move |width,height| {
-        let main = handle3.upgrade().unwrap();
-        main.window().set_size(LogicalSize::new(width,height));
-    });
     main.run().unwrap();
 }
