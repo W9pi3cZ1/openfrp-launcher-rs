@@ -1,0 +1,50 @@
+import "../fonts/MiSans-Bold.otf";
+import "../fonts/MiSans-Demibold.otf";
+import "../fonts/MiSans-ExtraLight.otf";
+import "../fonts/MiSans-Heavy.otf";
+import "../fonts/MiSans-Light.otf";
+import "../fonts/MiSans-Medium.otf";
+import "../fonts/MiSans-Normal.otf";
+import "../fonts/MiSans-Regular.otf";
+import "../fonts/MiSans-Semibold.otf";
+import "../fonts/MiSans-Thin.otf";
+
+export component TitleBar {
+    height: bar.min-height;
+    min-width: bar.min-width;
+    out property <length> padding-width: 8px;
+    out property <length> padding-height: 6px;
+    in-out property <string> title: "OpenFrp Launcher";
+    in property <length> border-radius: 0px;
+    in property <brush> border-color: @linear-gradient(90deg,#0b84f0,#f00b0b);
+    preferred-width: 100%;
+    bar:=Rectangle {
+        x:0;
+        y:0;
+        border-radius: border-radius;
+        height: self.min-height;
+        background: border-color;
+        // Rectangle {
+        //     x:0;
+        //     y:border-radius > parent.height / 2 ? parent.height / 2 : parent.height - border-radius;
+        //     height: border-radius > parent.height / 2 ? parent.height / 2 : border-radius + 1px;
+        //     width: parent.width;
+        //     background: @linear-gradient(90deg,#0b84f0,#f00b0b);
+        // }
+        HorizontalLayout {
+            padding-left: padding-width;
+            padding-right: padding-width;
+            padding-top: padding-height;
+            padding-bottom: padding-height;
+            Text {
+                vertical-alignment: center;
+                font-size: 12px;
+                font-weight: 500;
+                font-family: "MiSans";
+                text: title;
+                color: #fefefe;
+            }
+        }
+        @children
+    }
+}

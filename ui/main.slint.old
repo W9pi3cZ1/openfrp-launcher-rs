@@ -1,0 +1,92 @@
+import "../fonts/MiSans-Bold.otf";
+import "../fonts/MiSans-Demibold.otf";
+import "../fonts/MiSans-ExtraLight.otf";
+import "../fonts/MiSans-Heavy.otf";
+import "../fonts/MiSans-Light.otf";
+import "../fonts/MiSans-Medium.otf";
+import "../fonts/MiSans-Normal.otf";
+import "../fonts/MiSans-Regular.otf";
+import "../fonts/MiSans-Semibold.otf";
+import "../fonts/MiSans-Thin.otf";
+import { OpenFrpAPIWatermark } from "openfrp-api-watermark.slint";
+import { TitleBar } from "title-bar.slint";
+
+export component MainPage inherits Window{
+    // width: 768px;
+    // height: 512px;
+    min-width: 200px;
+    min-height: 200px;
+    preferred-width: 768px;
+    preferred-height: 512px;
+    
+    icon: @image-url("../res/icon.png");
+    // background: #0f;
+    title: "OpenFrp Launcher pre0.0.1.4_rust";
+    
+    watermark:=OpenFrpAPIWatermark {
+        padding-length: 10px;
+        x: parent.width;
+        y: parent.height;
+    }
+
+    title_bar:=TitleBar {
+        x: 0px;
+        y: 0px;
+    }
+    
+
+    // VerticalLayout {
+    //     height: 100%;
+    //     alignment: start;
+    //     Rectangle {
+    //         background: @linear-gradient(45deg,#0b84f0,#f00b0b);
+    //         width: 100%;
+    //         drop-shadow-color: @linear-gradient(45deg,#0b84f07f,#f00b0b7f);
+    //         drop-shadow-blur: 8px;
+    //         drop-shadow-offset-x: 0px;
+    //         drop-shadow-offset-y: 4px;
+    //         HorizontalLayout {
+    //             // alignment: start;
+    //             padding: 12px;
+    //             Text {
+    //                 text: "OpenFrp Launcher";
+    //                 font-size: 18px;
+    //                 // font-family: "s";
+    //                 font-weight: 500;
+    //                 color: #fefefe;
+    //             }
+    //         }
+    //     }
+    // }
+    // VerticalLayout {
+    //     height: 100%;
+    //     alignment: end;
+    //     padding: 8px;
+    //     HorizontalLayout {
+    //         width: 100%;
+    //         alignment: end;
+    //         Text {
+    //             text: "Powered by OpenFrp OPENAPI";
+    //             font-size: 8px;
+    //             opacity: 0.1;
+    //             // color: #16161610;
+    //         }
+    //     }
+    // }
+
+    // VerticalLayout {
+    //     height: 100%;
+    //     alignment: end;
+    //     padding: 8px;
+    //     HorizontalLayout {
+    //         width: 100%;
+    //         alignment: end;
+    //         Text {
+    //             text: "OpenFrp OPENAPI";
+    //             font-size: 8px;
+    //             opacity: 0.05;
+    //             // color: #16161610;
+    //         }
+    //     }
+    // }
+}

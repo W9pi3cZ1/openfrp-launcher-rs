@@ -1,5 +1,165 @@
-export component MainPage inherits Window{
-    width: 1024px;
-    height: 768px;
-    title: "OpenFrp Launcher a0.0.1_rust";
+import "../fonts/MiSans-Bold.otf";
+import "../fonts/MiSans-Demibold.otf";
+import "../fonts/MiSans-ExtraLight.otf";
+import "../fonts/MiSans-Heavy.otf";
+import "../fonts/MiSans-Light.otf";
+import "../fonts/MiSans-Medium.otf";
+import "../fonts/MiSans-Normal.otf";
+import "../fonts/MiSans-Regular.otf";
+import "../fonts/MiSans-Semibold.otf";
+import "../fonts/MiSans-Thin.otf";
+
+import { CustomWindow } from "custom-window.slint";
+import { OpenFrpAPIWatermark } from "openfrp-api-watermark.slint";
+import { ListView } from "std-widgets.slint";
+
+component SideBarItem inherits Rectangle {
+    in-out property <bool> active;
+    callback activate();
+
+    GridLayout {
+        padding: 16px;
+        @children
+    }
+
+    TouchArea {
+        clicked => { root.activate(); }
+    }
+}
+
+export component MainPage inherits CustomWindow {
+    border-color: @linear-gradient(90deg,#0060bf,#bf0020).brighter(25%);
+    min-height: 320px;
+    min-width: 320px;
+    property <int> active_page: 0;
+    default-font-family: "MiSans";
+    title: "OpenFrp Launcher a0.0.1.015";
+    // title: "Slint Demo";
+    // icon: @image-url("../res/icon.png");
+    preferred-width: 480px;
+    preferred-height: 320px;
+    callback close_win();
+    callback move_win(length,length);
+    callback resize_win(length,length);
+
+    close => {
+        close_win();
+    }
+
+    move(offset_x,offset_y) => {
+        move_win(offset-x,offset-y);
+    }
+
+    resize(width,height) => {
+        root.resize-w = false;
+        root.resize-h = false;
+        if(width < root.min-width){
+            root.resize-w = false; 
+        }else{
+            root.resize-w = true;
+        }
+
+        if(height < root.min-height){
+            root.resize-h = false;
+        }else{
+            root.resize-h = true;
+        }
+
+        resize_win(root.resize-w?width:root.min-width,root.resize-h?height:root.min-height);
+    }
+
+    VerticalLayout {
+        alignment: end;
+        HorizontalLayout {
+            alignment: end;
+            OpenFrpAPIWatermark {
+
+            }
+        }
+    }
+
+    HorizontalLayout {
+        padding: 4px;
+        sidebar:= Rectangle {
+            // background: #0f0f0f;
+            property <length> padding-y: 16px;
+            width: 125px;
+            // background: black;
+            function item-y(index:int,backward:bool) -> length{
+                if(backward){
+                    return self.height - padding-y - (index + 1) * 48px;
+                }else{
+                    return padding-y + index * 48px;
+                }
+            }
+            
+            for items[index] in [
+                {text:"首页",backward:false,index:0},
+                {text:"隧道",backward:false,index:1},
+                {text:"控制台",backward:false,index:2},
+                {text:"设置",backward:true,index:0},
+            ]: SideBarItem {
+                activate => {
+                    root.active-page = index;
+                }
+                x:0;
+                y: items.backward?item-y(items.index,true):item-y(items.index,false);
+                width: parent.width;
+                height: 48px;
+                Text {
+                    font-weight: 500;
+                    text: items.text;
+                    font-size: 12px;
+                    color: (root.active-page==index)?root.border-color:root.border-color.darker(75%);
+                    animate color {
+                        duration: 500ms;
+                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    }
+                }
+            }
+        }
+        main-view:= Rectangle{
+            border-color: #0f0f0f;
+            border-width: 2px;
+            border-radius: root.border-radius;
+            Rectangle {
+                clip: true;
+                Text {
+                    text: "我是首页";
+                    opacity: root.active-page==0?1:0;
+                    animate opacity {
+                        duration: 500ms;
+                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    }
+                }
+                Text {
+                    text: "我是隧道";
+                    opacity: root.active-page==1?1:0;
+                    animate opacity {
+                        duration: 500ms;
+                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    }
+                }
+                Text {
+                    text: "我是控制台";
+                    opacity: root.active-page==2?1:0;
+                    animate opacity {
+                        duration: 500ms;
+                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    }
+                }
+                Text {
+                    text: "我是设置";
+                    opacity: root.active-page==3?1:0;
+                    animate opacity {
+                        duration: 500ms;
+                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    }
+                }
+            }
+        }
+    }
+    
+
+    
 }
