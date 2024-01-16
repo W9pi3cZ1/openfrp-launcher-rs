@@ -1,0 +1,26 @@
+import { Page } from "page.slint";
+import { Slider } from "std-widgets.slint";
+export component SettingsPage inherits Page {
+    header: "设置";
+    in-out property <float> win-opacity:0;
+    VerticalLayout {
+        x:0;
+        y:0;
+        alignment: start;
+        Text {
+            text: "透明度：";
+            font-size: 16px;
+            font-weight: 500;
+            color: root.header-color;
+        }
+        Slider {
+            width: 100%;
+            minimum: 10;
+            height: 16px;
+            value: 100;
+            changed => {
+                root.win-opacity = self.value / self.maximum;
+            }
+        }
+    }
+}

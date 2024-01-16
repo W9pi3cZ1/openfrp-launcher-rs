@@ -19,11 +19,12 @@ export component CustomWindow inherits Window{
     in property <brush> content-background: #fefefe;
     in property <length> border-radius: 4px;
 
+    in property <float> win_opacity: 1;
     property <bool> drag-area-pressed: false;
     property <length> drag-area-down-x: 0;
     property <length> drag-area-down-y: 0;
     property <length> area-size: 8px;
-    property <length> border-width: 2px;
+    in property <length> border-width: 2px;
     in-out property <brush> border-color: @linear-gradient(90deg,#0b84f0,#f00b0b);
 
 
@@ -95,10 +96,11 @@ export component CustomWindow inherits Window{
     }
 
     win:=Rectangle {
+        opacity: root.win-opacity;
         background: border-color;
         VerticalLayout {
             TitleBar {
-                border-color: border-color;
+                border-color: transparent;
                 title: root.title;
                 border-radius: border-radius;
                 TouchArea {
@@ -120,7 +122,7 @@ export component CustomWindow inherits Window{
                     padding-top: parent.padding-height;
                     padding-bottom: parent.padding-height;
                     Rectangle {
-                        border-radius: border-radius;
+                        border-radius: 4px;
                         width: 14px;
                         height: 14px;
                         background: touch.has-hover? touch.pressed? #ffffff9f : #ffffff7f : #ffffff3f;
@@ -144,12 +146,11 @@ export component CustomWindow inherits Window{
                     background: content-background;
                     @children
                 }
-                padding: win.border-width;
             }
+            padding: root.border-width;
         }
-        padding: self.border-width;
-        border-color: border-color;
-        border-width: border-width;
+        // border-color: border-color;
+        // border-width: border-width;
         border-radius: border-radius;
     }
 
