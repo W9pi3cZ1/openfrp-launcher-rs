@@ -1,0 +1,298 @@
+import "../../fonts/MiSans-Bold.otf";
+import "../../fonts/MiSans-Demibold.otf";
+import "../../fonts/MiSans-ExtraLight.otf";
+import "../../fonts/MiSans-Heavy.otf";
+import "../../fonts/MiSans-Light.otf";
+import "../../fonts/MiSans-Medium.otf";
+import "../../fonts/MiSans-Normal.otf";
+import "../../fonts/MiSans-Regular.otf";
+import "../../fonts/MiSans-Semibold.otf";
+import "../../fonts/MiSans-Thin.otf";
+import { TitleBar } from "title-bar.slint";
+
+export component CustomWindow inherits Window{
+    no-frame: true;
+    background: transparent;
+
+    in property <brush> content-background: #fefefe;
+    in property <brush> title-color: #fefefe;
+    in property <length> border-radius: 4px;
+
+    callback update_pos();
+
+    in-out property <{x:length,y:length}> position: {x:0,y:0};
+    in-out property <{x:length,y:length}> br-position: {x:0,y:0};
+    // in-out property <{x:length,y:length}> old-br-position: {x:0,y:0};
+    in-out property <{x:length,y:length}> old-position: {x:0,y:0};
+    in-out property <{width:length,height:length}> old-size;
+
+    in property <float> win_opacity: 1;
+    property <{x:length,y:length}> drag-area-down: {x:0,y:0};
+    property <bool> drag-area-pressed;
+    property <length> area-size: 8px;
+    in property <length> border-width: 2px;
+    in-out property <brush> border-color: @linear-gradient(90deg,#0b84f0,#f00b0b);
+
+    callback close();
+    callback move(length,length);
+    callback debug(length);
+    function resize(width:length,height:length) {
+        root.width=(width >= root.min-width)?width:root.min-width;
+        root.height=(height >= root.min-height)?height:root.min-height;
+    }
+
+    function update-br-pos() {
+        br-position = {
+            x:br-position.x,
+            y:br-position.y,
+        };
+    }
+
+    function drag-area-move(offset: int,mouse-speed-x: length,mouse-speed-y: length) {
+        old-position = position;
+        update-pos();
+        // Titlebar move 标题栏移动
+        if(offset == 0){
+            move(position.x + mouse-speed-x / 2,position.y + mouse-speed-y / 2);
+        // Top resize 顶部缩放
+        }else if(offset == 1){
+            move(position.x,root.height - mouse-speed-y / 2 <= root.min-height?position.y:position.y + mouse-speed-y / 2);
+            update-pos();
+            resize(root.width,br-position.y - position.y <= root.min-height?root.min-height:br-position.y - position.y);
+        // Right resize 右侧缩放
+        }else if(offset == 2){
+            br-position.x = root.width + mouse-speed-x / 2 <= root.min-width?position.x + root.min-width: br-position.x + mouse-speed-x / 2;
+            resize(br-position.x - position.x <= root.min-width?root.min-width:br-position.x - position.x,root.height);
+        // Bottom resize 底部缩放
+        }else if(offset == 3){
+            br-position.y = root.height + mouse-speed-y / 2 <= root.min-height?position.y + root.min-height: br-position.y + mouse-speed-y / 2;
+            resize(root.width,br-position.y - position.y <= root.min-height?root.min-height:br-position.y - position.y)
+        // Left resize 左侧缩放
+        }else if(offset == 4){
+            move(root.width - mouse-speed-x / 2 <= root.min-width?position.x:position.x + mouse-speed-x / 2,position.y);
+            update-pos();
+            resize(br-position.x - position.x <= root.min-width?root.min-width:br-position.x - position.x,root.height);
+        // Top-left resize 左上缩放
+        }else if(offset == 5){
+            move(root.width - mouse-speed-x / 2 <= root.min-width?position.x:position.x + mouse-speed-x / 2,root.height - mouse-speed-y / 2 <= root.min-height?position.y:position.y + mouse-speed-y / 2);
+            update-pos();
+            resize(br-position.x - position.x <= root.min-width?root.min-width:br-position.x - position.x,br-position.y - position.y <= root.min-height?root.min-height:br-position.y - position.y);
+        // Top-right resize 右上缩放
+        }else if(offset == 6){
+            br-position.x = root.width + mouse-speed-x / 2 <= root.min-width?position.x + root.min-width: br-position.x + mouse-speed-x / 2;
+            move(position.x,root.height - mouse-speed-y / 2 <= root.min-height?position.y:position.y + mouse-speed-y / 2);
+            update-pos();
+            resize(br-position.x - position.x <= root.min-width?root.min-width:br-position.x - position.x,br-position.y - position.y <= root.min-height?root.min-height:br-position.y - position.y);
+        // Bottom-right resize 右下缩放
+        }else if(offset == 7){
+            br-position = {
+                x:root.width + mouse-speed-x / 2 <= root.min-width?position.x + root.min-width: br-position.x + mouse-speed-x / 2,
+                y:root.height + mouse-speed-y / 2 <= root.min-height?position.y + root.min-height: br-position.y + mouse-speed-y / 2,
+            };
+            resize(br-position.x - position.x <= root.min-width?root.min-width:br-position.x - position.x,br-position.y - position.y <= root.min-height?root.min-height:br-position.y - position.y);
+
+        // Bottom-left resize 左下缩放
+        }else if(offset == 8){
+            br-position.y = root.height + mouse-speed-y / 2 <= root.min-height?position.y + root.min-height: br-position.y + mouse-speed-y / 2;
+            move(root.width - mouse-speed-x / 2 <= root.min-width?position.x:position.x + mouse-speed-x / 2,position.y);
+            update-pos();
+            resize(br-position.x - position.x <= root.min-width?root.min-width:br-position.x - position.x,br-position.y - position.y <= root.min-height?root.min-height:br-position.y - position.y);
+        }
+    }
+
+    function drag-area-event(event: PointerEvent,mx: length,my:length) {
+        drag-area-pressed = event.kind == PointerEventKind.down;
+        if(drag-area-pressed){
+            update-pos();
+            old-position = position;
+            br-position = {x:position.x+root.width,y:position.y+root.height};
+        }
+        drag-area-down = {x:mx,y:my};
+    }
+
+    win:=Rectangle {
+        opacity: root.win-opacity;
+        background: border-color;
+        VerticalLayout {
+            TitleBar {
+                title-color: title-color;
+                border-color: transparent;
+                title: root.title;
+                border-radius: border-radius;
+                TouchArea {
+                    moved => {
+                        self.mouse-cursor = MouseCursor.move;
+                        drag-area-move(0, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                    }
+                    pointer-event(event) => {
+                        if(event.kind == PointerEventKind.up){
+                            self.mouse-cursor = MouseCursor.default;
+                        }
+                        drag-area-event(event, self.mouse-x, self.mouse-y);
+                    }
+                }
+                HorizontalLayout {
+                    alignment: end;
+                    padding-left: parent.padding-width;
+                    padding-right: parent.padding-width;
+                    padding-top: parent.padding-height;
+                    padding-bottom: parent.padding-height;
+                    Rectangle {
+                        border-radius: 4px;
+                        width: 14px;
+                        height: 14px;
+                        background: touch.has-hover? touch.pressed? #ffffff9f : #ffffff7f : #ffffff3f;
+                        touch := TouchArea {
+                            clicked => { close() }
+                        }
+                        Text {
+                            vertical-alignment: center;
+                            color: #fefefe;
+                            font-family: "MiSans";
+                            font-size: 12px;
+                            font-weight: 500;
+                            text: "×";
+                            Text {
+                                x:0.75px;
+                                y:0.75px;
+                                opacity: 0.5;
+                                vertical-alignment: center;
+                                color: #fefefe.darker(5%);
+                                font-family: "MiSans";
+                                font-size: 12px;
+                                font-weight: 500;
+                                text: "×";
+                            }
+                        }
+                    }
+                }
+            }
+            VerticalLayout {
+                Rectangle {
+                    border-radius: border-radius;
+                    background: content-background;
+                    @children
+                }
+            }
+            padding: root.border-width;
+        }
+        border-radius: border-radius;
+    }
+
+    // 上边框点击区域
+    top-border-touch:= TouchArea{
+        mouse-cursor: row-resize;
+        width: 100%;
+        height: root.area-size;
+        x: 0;
+        y: 0;
+        moved => {
+            drag-area-move(1, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+    
+    // 右边框点击区域
+    right-border-touch:= TouchArea{
+        mouse-cursor: col-resize;
+        width: root.area-size;
+        height: 100%;
+        x: root.width - root.area-size;
+        y: 0;
+        moved => {
+            drag-area-move(2, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+
+    // 下边框点击区域
+    bottom-border-touch:= TouchArea{
+        mouse-cursor: row-resize;
+        width: 100%;
+        height: root.area-size;
+        x: 0;
+        y: root.height - root.area-size;
+        moved => {
+            drag-area-move(3, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+
+    // 左边框点击区域
+    left-border-touch:= TouchArea{
+        mouse-cursor: col-resize;
+        width: root.area-size;
+        height: 100%;
+        x: 0;
+        y: 0;
+        moved => {
+            drag-area-move(4, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+
+    // 左上角点击区域
+    left-top-border-touch:= TouchArea{
+        mouse-cursor: nw-resize;
+        width: root.area-size;
+        height: root.area-size;
+        x: 0;
+        y: 0;
+        moved => {
+            drag-area-move(5, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+    // 右上角点击区域
+    right-top-border-touch:= TouchArea{
+        mouse-cursor: ne-resize;
+        width: root.area-size;
+        height: root.area-size;
+        x: root.width - root.area-size;
+        y: 0;
+        moved => {
+            drag-area-move(6, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+    //右下角点击区域
+    right-bottom-border-touch:= TouchArea{
+        mouse-cursor: se-resize;
+        width: root.area-size;
+        height: root.area-size;
+        x: root.width - root.area-size;
+        y: root.height - root.area-size;
+        moved => {
+            drag-area-move(7, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+    //左下角点击区域
+    left-bottom-border-touch:= TouchArea{
+        mouse-cursor: sw-resize;
+        width: root.area-size;
+        height: root.area-size;
+        x: 0;
+        y: root.height - root.area-size;
+        moved => {
+            drag-area-move(8, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+        }
+        pointer-event(event) => {
+            drag-area-event(event, self.mouse-x, self.mouse-y);
+        }
+    }
+}

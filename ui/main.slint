@@ -9,11 +9,13 @@ import "../fonts/MiSans-Regular.otf";
 import "../fonts/MiSans-Semibold.otf";
 import "../fonts/MiSans-Thin.otf";
 
-import { CustomWindow } from "custom-window.slint";
-import { OpenFrpAPIWatermark } from "openfrp-api-watermark.slint";
+import { CustomWindow } from "./window/custom-window.slint";
+import { OpenFrpAPIWatermark } from "./window/openfrp-api-watermark.slint";
 import { ListView , Slider} from "std-widgets.slint";
-import { HomePage } from "home-page.slint";
-import { SettingsPage } from "settings-page.slint";
+import { HomePage } from "./pages/home-page.slint";
+import { SettingsPage } from "./pages/settings-page.slint";
+import { TunnelPage } from "./pages/tunnel-page.slint";
+import { ConsolePage } from "./pages/console-page.slint";
 
 component SideBarItem inherits Rectangle {
     in-out property <bool> active;
@@ -31,19 +33,43 @@ component SideBarItem inherits Rectangle {
 }
 
 export component MainPage inherits CustomWindow {
-    border-color: @linear-gradient(135deg,#0060bf,#bf0020).brighter(25%);
-    min-height: 320px;
-    min-width: 320px;
+    property <bool> dark;
+    title-color: dark?#fefefedf:#fefefecf;
+    property <brush> page-header-color:dark?@linear-gradient(135deg,#b6e3ffdf,#ffa6b5ef):@linear-gradient(135deg,#0058cfdf,#ef0028ef).darker(250%);
+    property <brush> sbar-i-color-sel:dark?@linear-gradient(135deg,#40b8ffef,#ff4068ef):@linear-gradient(135deg,#0078ef,#ef0028);
+    property <brush> sbar-i-color-unsel:dark?@linear-gradient(135deg,#d4e8ff5f,#ffd7e95f):@linear-gradient(135deg,#1b3b6baf,#381828af);
+    border-color: dark?@linear-gradient(135deg,#0078ef,#ef0028).darker(300%):@linear-gradient(135deg,#0078efef,#0078ef7f).darker(5%);
+    min-height: 350px;
+    min-width: 350px;
     property <int> active_page: 0;
     default-font-family: "MiSans";
-    title: "OpenFrp Launcher a0.0.130";
-    // title: "Slint Demo";
-    // icon: @image-url("../res/icon.png");
+    title: "OpenFrp Launcher a0.0.160";
+    content-background: dark?#1f1f1f:#fefefe;
+    // icon: @image-url("../res/icons/sidebar/icon.png");
     border-radius: 4px;
     preferred-width: 480px;
     preferred-height: 320px;
     callback close_win();
     callback move_win(length,length);
+    callback get_win_pos() -> {x:length,y:length};
+    callback dbug(length);
+    animate border-color,title-color {
+        duration: 75ms;
+        easing: cubic-bezier(0, 0.0, 0.75, 1);
+    }
+
+    debug(x) => {
+        dbug(x);
+    }
+
+    init => {
+        self.width = self.preferred-width;
+        self.height = self.preferred-height;
+    }
+
+    update-pos => {
+        root.position = get-win-pos();
+    }
 
     close => {
         close_win();
@@ -51,6 +77,7 @@ export component MainPage inherits CustomWindow {
 
     move(offset_x,offset_y) => {
         move_win(offset_x,offset_y);
+        root.update-pos();
     }
 
     VerticalLayout {
@@ -58,14 +85,18 @@ export component MainPage inherits CustomWindow {
         HorizontalLayout {
             alignment: end;
             OpenFrpAPIWatermark {
-
+                text-color: dark?#fefefe7f:#0101017f;
+                animate text-color {
+                    duration: 75ms;
+                    easing: cubic-bezier(0, 0.0, 0.75, 1);
+                }
             }
         }
     }
 
     HorizontalLayout {
         sidebar:= Rectangle {
-            background: #0000000f;
+            background: dark?#ffffff03:#0000000f;
             property <length> padding-y: 16px;
             width: 128px;
             // background: black;
@@ -78,10 +109,10 @@ export component MainPage inherits CustomWindow {
             }
             
             for items[index] in [
-                {text:"首页",backward:false,index:0,icon:@image-url("../res/home.svg")},
-                {text:"隧道",backward:false,index:1,icon:@image-url("../res/tunnel.svg")},
-                {text:"控制台",backward:false,index:2,icon:@image-url("../res/console.svg")},
-                {text:"设置",backward:true,index:0,icon:@image-url("../res/settings.svg")},
+                {text:"首页",backward:false,index:0,icon:@image-url("../res/icons/sidebar/home.svg")},
+                {text:"隧道",backward:false,index:1,icon:@image-url("../res/icons/sidebar/tunnel.svg")},
+                {text:"控制台",backward:false,index:2,icon:@image-url("../res/icons/sidebar/console.svg")},
+                {text:"设置",backward:true,index:0,icon:@image-url("../res/icons/sidebar/settings.svg")},
             ]: SideBarItem {
                 activate => {
                     root.active-page = index;
@@ -91,13 +122,13 @@ export component MainPage inherits CustomWindow {
                 width: parent.width;
                 height: self.min-height;
                 border-radius: root.border-radius;
-                background: self.has-hover?#00000007:transparent;
+                background: root.dark?(self.has-hover?#ffffff03:transparent):(self.has-hover?#00000007:transparent);
                 animate background {
-                    duration: 250ms;
+                    duration: 200ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 Rectangle {
-                    background: root.active-page==index?#0000001f:transparent;
+                    background: root.dark?(root.active-page==index?#ffffff0f:transparent):(root.active-page==index?#0000001f:transparent);
                     border-radius: root.border-radius;
                     HorizontalLayout {
                         padding: 12px;
@@ -109,25 +140,51 @@ export component MainPage inherits CustomWindow {
                             height: title.min-height;
                             width: title.min-height;
                             source: items.icon;
-                            colorize: (root.active-page==index)?root.border-color:root.border-color.darker(100%);
+                            colorize: (root.active-page==index)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
                             animate colorize {
-                                duration: 250ms;
+                                duration: 200ms;
                                 easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                            }
+                            Image {
+                                opacity: 0.4;
+                                x:(root.active-page==index)?0.90px:0.00px;
+                                y:(root.active-page==index)?0.90px:0.00px;
+                                height: title.min-height;
+                                width: title.min-height;
+                                source: items.icon;
+                                colorize: (root.active-page==index)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                animate x,y,colorize {
+                                    duration: 200ms;
+                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                }
                             }
                         }
                         title:=Text {
                             font-weight: 500;
                             text: items.text;
                             font-size: 12px;
-                            color: (root.active-page==index)?root.border-color:root.border-color.darker(100%);
+                            color: (root.active-page==index)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
                             animate color {
-                                duration: 250ms;
+                                duration: 200ms;
                                 easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                            }
+                            Text {
+                                x:(root.active-page==index)?0.90px:0.00px;
+                                y:(root.active-page==index)?0.90px:0.00px;
+                                opacity: 0.4;
+                                font-weight: 500;
+                                text: items.text;
+                                font-size: 12px;
+                                color: (root.active-page==index)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                animate x,y,color {
+                                    duration: 200ms;
+                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                }
                             }
                         }
                     }
                     animate background {
-                        duration: 250ms;
+                        duration: 200ms;
                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                     }
                 }
@@ -135,34 +192,61 @@ export component MainPage inherits CustomWindow {
         }
         main-view:= Rectangle{
             Rectangle {
+                clip: true;
                 HomePage {
-                    opacity: root.active-page==0?1:0;
-                    animate opacity {
-                        duration: 250ms;
+                    property <bool> actived: root.active-page==0;
+                    x:actived?0px:50%*parent.width;
+                    y:actived?0px:50%*parent.height;
+                    width: actived?parent.width:0;
+                    height: actived?parent.height:0;
+                    header-color: page-header-color;
+                    opacity: actived?1:0;
+                    animate x,y,width,height,opacity {
+                        duration: 200ms;
                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                     }
                 }
-                Text {
-                    text: "我是隧道";
-                    opacity: root.active-page==1?1:0;
-                    animate opacity {
-                        duration: 250ms;
+                TunnelPage {
+                    property <bool> actived: root.active-page==1;
+                    x:actived?0px:50%*parent.width;
+                    y:actived?0px:50%*parent.height;
+                    width: actived?parent.width:0;
+                    height: actived?parent.height:0;
+                    header-color: page-header-color;
+                    opacity: actived?1:0;
+                    animate x,y,width,height,opacity {
+                        duration: 200ms;
                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                     }
                 }
-                Text {
-                    text: "我是控制台";
-                    opacity: root.active-page==2?1:0;
-                    animate opacity {
-                        duration: 250ms;
+                ConsolePage {
+                    property <bool> actived: root.active-page==2;
+                    x:actived?0px:50%*parent.width;
+                    y:actived?0px:50%*parent.height;
+                    width: actived?parent.width:0;
+                    height: actived?parent.height:0;
+                    header-color: page-header-color;
+                    opacity: actived?1:0;
+                    animate x,y,width,height,opacity {
+                        duration: 200ms;
                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                     }
                 }
                 SettingsPage {
+                    property <bool> actived: root.active-page==3;
+                    x:actived?0px:50%*parent.width;
+                    y:actived?0px:50%*parent.height;
+                    width: actived?parent.width:0;
+                    height: actived?parent.height:0;
+                    option-bg-color: dark?#ffffff07:#00000003;
+                    option-border-color: dark?#ffffff0f:#00000007;
+                    option-colorize: dark?@linear-gradient(135deg,#d4d4d4af,#d7d7d7af):@linear-gradient(135deg,#2b2b2baf,#282828af);
+                    header-color: page-header-color;
                     win-opacity <=> root.win-opacity;
-                    opacity: root.active-page==3?1:0;
-                    animate opacity {
-                        duration: 250ms;
+                    dark <=> root.dark;
+                    opacity: actived?1:0;
+                    animate x,y,width,height,opacity {
+                        duration: 200ms;
                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                     }
                 }

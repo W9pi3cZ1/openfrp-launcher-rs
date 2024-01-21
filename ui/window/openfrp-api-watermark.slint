@@ -1,13 +1,13 @@
-import "../fonts/MiSans-Bold.otf";
-import "../fonts/MiSans-Demibold.otf";
-import "../fonts/MiSans-ExtraLight.otf";
-import "../fonts/MiSans-Heavy.otf";
-import "../fonts/MiSans-Light.otf";
-import "../fonts/MiSans-Medium.otf";
-import "../fonts/MiSans-Normal.otf";
-import "../fonts/MiSans-Regular.otf";
-import "../fonts/MiSans-Semibold.otf";
-import "../fonts/MiSans-Thin.otf";
+import "../../fonts/MiSans-Bold.otf";
+import "../../fonts/MiSans-Demibold.otf";
+import "../../fonts/MiSans-ExtraLight.otf";
+import "../../fonts/MiSans-Heavy.otf";
+import "../../fonts/MiSans-Light.otf";
+import "../../fonts/MiSans-Medium.otf";
+import "../../fonts/MiSans-Normal.otf";
+import "../../fonts/MiSans-Regular.otf";
+import "../../fonts/MiSans-Semibold.otf";
+import "../../fonts/MiSans-Thin.otf";
 
 export component OpenFrpAPIWatermark {
     preferred-width: 0px;
@@ -15,23 +15,24 @@ export component OpenFrpAPIWatermark {
     in-out property <length> padding_length: 12px;
     in-out property <string> font: "MiSans";
     in-out property <length> font-size: 8px;
+    in-out property <brush> text-color;
     api_name := Text {
         x: 0 - self.width - padding-length;
         y: 0 - self.height - padding-length;
-        // x: parent.x + self.width + padding-length;
-        // y: parent.y + self.height + padding-length;
         text: "OpenFrp OPENAPI";
         font-family: font;
         font-weight: 500;
+        color: text-color;
         font-size: font-size;
-        opacity: 0.075;
+        opacity: 0.125;
     }
     Text {
         x: api_name.x - self.width;
         y: api_name.y;
         text: "Powered by ";
         font-family: font;
+        color: text-color;
         font-size: font-size;
-        opacity: 0.05;
+        opacity: 0.1;
     }
 }

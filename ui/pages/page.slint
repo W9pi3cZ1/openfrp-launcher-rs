@@ -1,0 +1,47 @@
+import "../../fonts/MiSans-Bold.otf";
+import "../../fonts/MiSans-Demibold.otf";
+import "../../fonts/MiSans-ExtraLight.otf";
+import "../../fonts/MiSans-Heavy.otf";
+import "../../fonts/MiSans-Light.otf";
+import "../../fonts/MiSans-Medium.otf";
+import "../../fonts/MiSans-Normal.otf";
+import "../../fonts/MiSans-Regular.otf";
+import "../../fonts/MiSans-Semibold.otf";
+import "../../fonts/MiSans-Thin.otf";
+
+export component Page inherits Rectangle {
+    in property <string> header: "Demo";
+    in property <length> padding-width:16px;
+    in property <length> padding-height:16px;
+    in property <brush> header-color: @linear-gradient(135deg,#0060bf,#bf0020).darker(25%);
+    h:=Text {
+        x:padding-width;
+        y:padding-height;
+        text: header;
+        width: self.min-width;
+        height: self.min-height;
+        font-family: "MiSans";
+        font-weight: 600;
+        font-size: 18px;
+        color: header-color;
+        Text {
+            x:0.75px;
+            y:0.75px;
+            text: header;
+            width: self.min-width;
+            height: self.min-height;
+            font-family: "MiSans";
+            font-weight: 600;
+            font-size: 18px;
+            opacity: 0.4;
+            color: header-color.darker(5%);
+        }
+    }
+    Rectangle {
+        x:padding-width;
+        y:h.height + padding-height;
+        width: parent.width - 2 * padding-width;
+        height: parent.height - h.height - 2 * padding-height;
+        @children
+    }
+}
