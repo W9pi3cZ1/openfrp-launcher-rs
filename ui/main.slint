@@ -1,13 +1,13 @@
-import "../fonts/MiSans-Bold.otf";
-import "../fonts/MiSans-Demibold.otf";
-import "../fonts/MiSans-ExtraLight.otf";
-import "../fonts/MiSans-Heavy.otf";
-import "../fonts/MiSans-Light.otf";
-import "../fonts/MiSans-Medium.otf";
-import "../fonts/MiSans-Normal.otf";
-import "../fonts/MiSans-Regular.otf";
-import "../fonts/MiSans-Semibold.otf";
-import "../fonts/MiSans-Thin.otf";
+// import "../fonts/MiSans-Bold.otf";
+// import "../fonts/MiSans-Demibold.otf";
+// import "../fonts/MiSans-ExtraLight.otf";
+// import "../fonts/MiSans-Heavy.otf";
+// import "../fonts/MiSans-Light.otf";
+// import "../fonts/MiSans-Medium.otf";
+// import "../fonts/MiSans-Normal.otf";
+// import "../fonts/MiSans-Regular.otf";
+// import "../fonts/MiSans-Semibold.otf";
+// import "../fonts/MiSans-Thin.otf";
 
 import { CustomWindow } from "./window/custom-window.slint";
 import { OpenFrpAPIWatermark } from "./window/openfrp-api-watermark.slint";
@@ -35,15 +35,15 @@ component SideBarItem inherits Rectangle {
 export component MainPage inherits CustomWindow {
     property <bool> dark;
     title-color: dark?#fefefedf:#fefefecf;
-    property <brush> page-header-color:dark?@linear-gradient(135deg,#b6e3ffdf,#ffa6b5ef):@linear-gradient(135deg,#0058cfdf,#ef0028ef).darker(250%);
+    property <brush> page-header-color:dark?@linear-gradient(135deg,#bae7ffdf,#ffaab7ef):@linear-gradient(135deg,#0058cfdf,#ef0028ef).darker(250%);
     property <brush> sbar-i-color-sel:dark?@linear-gradient(135deg,#40b8ffef,#ff4068ef):@linear-gradient(135deg,#0078ef,#ef0028);
-    property <brush> sbar-i-color-unsel:dark?@linear-gradient(135deg,#d4e8ff5f,#ffd7e95f):@linear-gradient(135deg,#1b3b6baf,#381828af);
+    property <brush> sbar-i-color-unsel:dark?@linear-gradient(135deg,#d7eaff5f,#ffd7ee5f):@linear-gradient(135deg,#1b3b6baf,#381828af);
     border-color: dark?@linear-gradient(135deg,#0078ef,#ef0028).darker(300%):@linear-gradient(135deg,#0078efef,#0078ef7f).darker(5%);
     min-height: 350px;
     min-width: 350px;
     property <int> active_page: 0;
-    default-font-family: "MiSans";
-    title: "OpenFrp Launcher a0.0.160";
+    // default-font-family: "MiSans";
+    title: "OpenFrp Launcher a0.0.167";
     content-background: dark?#1f1f1f:#fefefe;
     // icon: @image-url("../res/icons/sidebar/icon.png");
     border-radius: 4px;
@@ -96,9 +96,16 @@ export component MainPage inherits CustomWindow {
 
     HorizontalLayout {
         sidebar:= Rectangle {
+            property <bool> minimized: false;
+            property <length> minimized-width: 48px;
             background: dark?#ffffff03:#0000000f;
             property <length> padding-y: 16px;
-            width: 128px;
+            width: minimized?minimized-width:128px;
+            // clip: true;
+            animate width {
+                duration: 200ms;
+                easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+            }
             // background: black;
             function item-y(index:int,backward:bool) -> length{
                 if(backward){
@@ -109,50 +116,84 @@ export component MainPage inherits CustomWindow {
             }
             
             for items[index] in [
-                {text:"首页",backward:false,index:0,icon:@image-url("../res/icons/sidebar/home.svg")},
-                {text:"隧道",backward:false,index:1,icon:@image-url("../res/icons/sidebar/tunnel.svg")},
-                {text:"控制台",backward:false,index:2,icon:@image-url("../res/icons/sidebar/console.svg")},
-                {text:"设置",backward:true,index:0,icon:@image-url("../res/icons/sidebar/settings.svg")},
+                {
+                    text:"菜单",
+                    backward:false,
+                    index:0,
+                    icon:@image-url("../res/icons/sidebar/menu.svg"),
+                    func: "menu",
+                },
+                {
+                    text:"首页",
+                    backward:false,
+                    index:1,
+                    icon:@image-url("../res/icons/sidebar/home.svg"),
+                },
+                {
+                    text:"隧道",
+                    backward:false,
+                    index:2,
+                    icon:@image-url("../res/icons/sidebar/tunnel.svg"),
+                },
+                {
+                    text:"控制台",
+                    backward:false,
+                    index:3,
+                    icon:@image-url("../res/icons/sidebar/console.svg"),
+                },
+                {
+                    text:"设置",
+                    backward:true,
+                    index:0,
+                    icon:@image-url("../res/icons/sidebar/settings.svg"),
+                },
             ]: SideBarItem {
+                property <int> page:index - 1;
                 activate => {
-                    root.active-page = index;
+                    if(items.func == "menu"){
+                        minimized=!minimized;
+                    }else{
+                        root.active-page = page;
+                    }
                 }
                 x:0;
                 y: items.backward?item-y(items.index,true):item-y(items.index,false);
-                width: parent.width;
+                width: minimized?minimized-width:128px;
                 height: self.min-height;
                 border-radius: root.border-radius;
                 background: root.dark?(self.has-hover?#ffffff03:transparent):(self.has-hover?#00000007:transparent);
-                animate background {
+                animate width,background {
                     duration: 200ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 Rectangle {
-                    background: root.dark?(root.active-page==index?#ffffff0f:transparent):(root.active-page==index?#0000001f:transparent);
+                    width: parent.width;
+                    background: root.dark?(root.active-page==page?#ffffff0f:transparent):(root.active-page==page?#0000001f:transparent);
                     border-radius: root.border-radius;
-                    HorizontalLayout {
+                    layout:=HorizontalLayout {
                         padding: 12px;
                         padding-left: 16px;
                         padding-right: 16px;
-                        spacing: 12px;
+                        spacing: 16px;
                         alignment: space-between;
                         icon:=Image {
-                            height: title.min-height;
+                            // height: title.min-height;
                             width: title.min-height;
                             source: items.icon;
-                            colorize: (root.active-page==index)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                            image-fit: contain;
+                            colorize: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
                             animate colorize {
                                 duration: 200ms;
                                 easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                             }
                             Image {
                                 opacity: 0.4;
-                                x:(root.active-page==index)?0.90px:0.00px;
-                                y:(root.active-page==index)?0.90px:0.00px;
+                                x:(root.active-page==page)?0.90px:0.00px;
+                                y:(root.active-page==page)?0.90px:0.00px;
                                 height: title.min-height;
                                 width: title.min-height;
                                 source: items.icon;
-                                colorize: (root.active-page==index)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                colorize: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
                                 animate x,y,colorize {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -160,28 +201,32 @@ export component MainPage inherits CustomWindow {
                             }
                         }
                         title:=Text {
+                            opacity: minimized?0:1;
                             font-weight: 500;
                             text: items.text;
                             font-size: 12px;
-                            color: (root.active-page==index)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
-                            animate color {
+                            color: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                            animate opacity,color {
                                 duration: 200ms;
                                 easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                             }
                             Text {
-                                x:(root.active-page==index)?0.90px:0.00px;
-                                y:(root.active-page==index)?0.90px:0.00px;
+                                x:(root.active-page==page)?0.90px:0.00px;
+                                y:(root.active-page==page)?0.90px:0.00px;
                                 opacity: 0.4;
                                 font-weight: 500;
                                 text: items.text;
                                 font-size: 12px;
-                                color: (root.active-page==index)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                color: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
                                 animate x,y,color {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                                 }
                             }
                         }
+                    }
+                    init => {
+                        minimized-width = icon.width+layout.padding-left+layout.padding-right;
                     }
                     animate background {
                         duration: 200ms;
@@ -195,8 +240,8 @@ export component MainPage inherits CustomWindow {
                 clip: true;
                 HomePage {
                     property <bool> actived: root.active-page==0;
-                    x:actived?0px:50%*parent.width;
-                    y:actived?0px:50%*parent.height;
+                    x:actived?0px:50%*(parent.width - self.min-width);
+                    y:actived?0px:50%*(parent.height - self.min-height);
                     width: actived?parent.width:0;
                     height: actived?parent.height:0;
                     header-color: page-header-color;
@@ -208,8 +253,8 @@ export component MainPage inherits CustomWindow {
                 }
                 TunnelPage {
                     property <bool> actived: root.active-page==1;
-                    x:actived?0px:50%*parent.width;
-                    y:actived?0px:50%*parent.height;
+                    x:actived?0px:50%*(parent.width - self.min-width);
+                    y:actived?0px:50%*(parent.height - self.min-height);
                     width: actived?parent.width:0;
                     height: actived?parent.height:0;
                     header-color: page-header-color;
@@ -221,8 +266,8 @@ export component MainPage inherits CustomWindow {
                 }
                 ConsolePage {
                     property <bool> actived: root.active-page==2;
-                    x:actived?0px:50%*parent.width;
-                    y:actived?0px:50%*parent.height;
+                    x:actived?0px:50%*(parent.width - self.min-width);
+                    y:actived?0px:50%*(parent.height - self.min-height);
                     width: actived?parent.width:0;
                     height: actived?parent.height:0;
                     header-color: page-header-color;
@@ -234,13 +279,10 @@ export component MainPage inherits CustomWindow {
                 }
                 SettingsPage {
                     property <bool> actived: root.active-page==3;
-                    x:actived?0px:50%*parent.width;
-                    y:actived?0px:50%*parent.height;
+                    x:actived?0px:50%*(parent.width - self.min-width);
+                    y:actived?0px:50%*(parent.height - self.min-height);
                     width: actived?parent.width:0;
                     height: actived?parent.height:0;
-                    option-bg-color: dark?#ffffff07:#00000003;
-                    option-border-color: dark?#ffffff0f:#00000007;
-                    option-colorize: dark?@linear-gradient(135deg,#d4d4d4af,#d7d7d7af):@linear-gradient(135deg,#2b2b2baf,#282828af);
                     header-color: page-header-color;
                     win-opacity <=> root.win-opacity;
                     dark <=> root.dark;

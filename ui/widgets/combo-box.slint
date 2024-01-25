@@ -1,0 +1,144 @@
+export component RadiusLine inherits Path{
+    // width: 10px;
+    // height: 100px;
+    fill: #0060c0;
+    // stroke: #000;
+    // stroke-width: 1px;
+    property <bool> is_horizontal: false;
+
+    MoveTo {
+        x: is-horizontal?0:parent.width / 1px;
+        y: 0;
+    }
+    ArcTo{
+        radius-x: 1;
+        radius-y: 1;
+        x:0;
+        y:is-horizontal?parent.height / 1px:0;
+    }
+    LineTo{
+        x:is-horizontal?parent.width / 1px:0;
+        y:parent.height / 1px;
+    }
+    ArcTo {
+        radius-x: 1;
+        radius-y: 1;
+        x:parent.width / 1px;
+        y:is-horizontal?0:parent.height / 1px;
+    }
+    Close {
+    }
+}
+
+export component ComboBox inherits Rectangle {
+    in-out property <string> current-value: "Demo";
+    in property <[string]> values: ["Demo", "Test", "Other"];
+    in property <brush> popup-border-color: @linear-gradient(0deg, #ddd7, #eee7,#eee7);
+    in property <brush> popup-bg-color: #fdfdfd;
+    in-out property <brush> bg-color:#fdfdfd;
+    in property <length> popup-border-width: 0.8px;
+    in-out property <brush> text-color: #555;
+    callback selected();
+    // height: 32px;
+    preferred-height: 100%;
+    preferred-width: 72px;
+    background: popup-touch.pressed?bg-color.darker(5%):(popup-touch.has-hover?bg-color.darker(2%):bg-color);
+    border-color: @linear-gradient(0deg, #dddd, #eeed,#eeed);
+    border-width: 1px;
+    border-radius: 3px;
+    padding: 8px;
+    val_view:=Text {
+        font-weight: 500;
+        font-size: 12px;
+        x:parent.padding;
+        text: current-value;
+        color: popup-touch.pressed?text-color.brighter(15%):text-color;
+    }
+    down_ico_view:=Image {
+        x:parent.width - self.width - parent.padding;
+        source: @image-url("../../res/icons/widgets/down.svg");
+        width: 12px;
+        image-fit: contain;
+        rotation-angle: popup.show?180deg:0deg;
+        colorize: parent.text-color.transparentize(0.5);
+        animate rotation-angle {
+            duration: 200ms;
+            easing: ease-in-out;
+        }
+    }
+    popup-touch:=TouchArea{
+        width: 100%;
+        height: 100%;
+        clicked => {
+            popup.show = !popup.show;
+        }
+    }
+
+    popup:=Rectangle {
+        in-out property <bool> show;
+        y:parent.height - root.border-width;
+        // y:0;
+        z:999;
+        height: show?self.min-height:0;
+        padding: root.padding;
+        clip: !show;
+        Rectangle {
+            background: popup-bg-color;
+            border-color: popup-border-color;
+            border-width: popup-border-width;
+            border-radius: root.border-radius;
+            drop-shadow-color: popup-border-color;
+            drop-shadow-offset-x: 1px;
+            drop-shadow-offset-y: 1px;
+            drop-shadow-blur: 4px;
+            opacity: show?1:0;
+            VerticalLayout {
+                padding: 4px;
+                for val[index] in values:Rectangle{
+                    property <bool> selected: root.current-value == val;
+                    height: root.height;
+                    padding: parent.padding;
+                    border-radius: root.border-radius;
+                    background: val-touch.has-hover?#7771:#7770;
+                    selected_ico:=RadiusLine{
+                        x:root.padding - parent.padding;
+                        width: 3px;
+                        height: val-touch.pressed?0:(selected?16px:0);
+                        animate height {
+                            duration: 100ms;
+                            easing: ease-in-out;
+                        }
+                    }
+                    Text {
+                        x:selected?selected-ico.x + selected-ico.width + 2px:popup.padding - parent.padding;
+                        text: val;
+                        color: val-view.color;
+                        font-weight: val-view.font-weight;
+                        font-size: val-view.font-size;
+                        animate x {
+                            duration: 200ms;
+                            easing: ease-in-out;
+                        }
+                    }
+                    val-touch:=TouchArea {
+                        clicked => {
+                            // parent.selected = true;
+                            root.current-value = val;
+                            root.selected();
+                            popup.show = false;
+                        }
+                    }
+                }
+            }
+            animate opacity {
+                duration: 200ms;
+                easing: ease-in-out;
+            }
+        }
+        
+        animate height {
+            duration: 200ms;
+            easing: ease-in-out;
+        }
+    }
+}

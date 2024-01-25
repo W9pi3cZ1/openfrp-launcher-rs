@@ -1,5 +1,6 @@
 import { Page } from "page.slint";
-import { Slider , Switch, ComboBox} from "std-widgets.slint";
+import { Slider } from "std-widgets.slint";
+import { ComboBox } from "../widgets/combo-box.slint";
 
 component SettingsOption inherits Rectangle {
     in property <string> option_name: "Title";
@@ -10,7 +11,7 @@ component SettingsOption inherits Rectangle {
     in-out property <brush> colorize: #000;
     border-color: #77777707;
     border-width: 1px;
-    border-radius: 12px;
+    border-radius: 8px;
     background: #77777703;
     padding: 10px;
     height: layout.min-height+self.padding;
@@ -55,10 +56,11 @@ component SettingsOption inherits Rectangle {
 export component SettingsPage inherits Page {
     header: "设置";
     in-out property <bool> dark:false;
-    in-out property <brush> option-colorize: #000;
-    in-out property <brush> option-border-color: #00000007;
-    in-out property <brush> option-bg-color: #00000003;
+    in-out property <brush> option-colorize: dark?@linear-gradient(135deg,#d4d4d4af,#d7d7d7af):@linear-gradient(135deg,#2b2b2baf,#282828af);
+    in-out property <brush> option-border-color: dark?#ffffff0f:#00000007;
+    in-out property <brush> option-bg-color: dark?#ffffff07:#00000003;
     in-out property <float> win-opacity:0;
+    background: dark?#1f1f1f:#fefefe;
     animate option-bg-color,option-border-color,option-colorize {
         duration: 75ms;
         easing: cubic-bezier(0, 0.0, 0.75, 1);
@@ -97,24 +99,38 @@ export component SettingsPage inherits Page {
             border-color: option-border-color;
             background: option-bg-color;
             current-icon: dark?0:1;
-            option-name: "深色模式";
+            option-name: "主题";
             HorizontalLayout {
                 alignment: end;
-                // ComboBox {
-                //     current-value: "白色";
-                //     width: 125px;
-                //     model: ["白色","深色"];
-                //     selected => {
-                //         dark = self.current-value == "深色";
-                //         themes.current-icon = dark?1:0;
-                //     }
-                // }
-                Switch {
-                    checked: false;
-                    toggled => {
-                        dark = self.checked;
+                ComboBox {
+                    bg-color: dark?#02020230:#fdfdfd30;
+                    text-color: dark?#aaaaaa:#555555;
+                    border-color: (dark?option-bg-color:option-bg-color).mix(#777,0.75);
+                    popup-bg-color: dark?#1f1f1f:#fdfdfd;
+                    popup-border-color: self.border-color;
+                    current-value: "白色";
+                    width: 100px;
+                    values: ["白色","深色"];
+                    selected => {
+                        dark = self.current-value == "深色";
                     }
                 }
+                // ComboBox {
+                //     current-value: "白色";
+                //     width: 100px;
+                //     model: ["白色","深色"];
+                //     selected => {
+                //         // self.enabled = false;
+                //         dark = self.current-value == "深色";
+                //     }
+                // }
+
+                // Switch {
+                //     checked: false;
+                //     toggled => {
+                //         dark = self.checked;
+                //     }
+                // }
             }
         }
     }

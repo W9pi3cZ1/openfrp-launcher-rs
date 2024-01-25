@@ -2605,7 +2605,7 @@ dependencies = [
 
 [[package]]
 name = "openfrp-launcher"
-version = "0.0.160"
+version = "0.0.167"
 dependencies = [
  "slint",
  "slint-build",

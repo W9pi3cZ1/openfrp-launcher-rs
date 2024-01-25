@@ -1,13 +1,13 @@
-import "../../fonts/MiSans-Bold.otf";
-import "../../fonts/MiSans-Demibold.otf";
-import "../../fonts/MiSans-ExtraLight.otf";
-import "../../fonts/MiSans-Heavy.otf";
-import "../../fonts/MiSans-Light.otf";
-import "../../fonts/MiSans-Medium.otf";
-import "../../fonts/MiSans-Normal.otf";
-import "../../fonts/MiSans-Regular.otf";
-import "../../fonts/MiSans-Semibold.otf";
-import "../../fonts/MiSans-Thin.otf";
+// import "../../fonts/MiSans-Bold.otf";
+// import "../../fonts/MiSans-Demibold.otf";
+// import "../../fonts/MiSans-ExtraLight.otf";
+// import "../../fonts/MiSans-Heavy.otf";
+// import "../../fonts/MiSans-Light.otf";
+// import "../../fonts/MiSans-Medium.otf";
+// import "../../fonts/MiSans-Normal.otf";
+// import "../../fonts/MiSans-Regular.otf";
+// import "../../fonts/MiSans-Semibold.otf";
+// import "../../fonts/MiSans-Thin.otf";
 import { TitleBar } from "title-bar.slint";
 
 export component CustomWindow inherits Window{
@@ -139,31 +139,48 @@ export component CustomWindow inherits Window{
                     padding-bottom: parent.padding-height;
                     Rectangle {
                         border-radius: 4px;
-                        width: 14px;
-                        height: 14px;
+                        width: 16px;
+                        height: 16px;
                         background: touch.has-hover? touch.pressed? #ffffff9f : #ffffff7f : #ffffff3f;
                         touch := TouchArea {
                             clicked => { close() }
                         }
-                        Text {
-                            vertical-alignment: center;
-                            color: #fefefe;
-                            font-family: "MiSans";
-                            font-size: 12px;
-                            font-weight: 500;
-                            text: "×";
-                            Text {
-                                x:0.75px;
-                                y:0.75px;
+                        Image {
+                            width: 12px;
+                            height: 12px;
+                            image-fit: contain;
+                            colorize: #fefefe;
+                            source: @image-url("../../res/icons/window/close.svg");
+                            Image {
+                                x:0.25px;
+                                y:0.25px;
+                                width: 12px;
+                                height: 12px;
                                 opacity: 0.5;
-                                vertical-alignment: center;
-                                color: #fefefe.darker(5%);
-                                font-family: "MiSans";
-                                font-size: 12px;
-                                font-weight: 500;
-                                text: "×";
+                                image-fit: contain;
+                                colorize: #fefefe;
+                                source: @image-url("../../res/icons/window/close.svg");
                             }
                         }
+                        // Text {
+                        //     vertical-alignment: center;
+                        //     color: #fefefe;
+                        //     // font-family: "MiSans";
+                        //     font-size: 12px;
+                        //     font-weight: 500;
+                        //     text: "×";
+                        //     Text {
+                        //         x:0.75px;
+                        //         y:0.75px;
+                        //         opacity: 0.5;
+                        //         vertical-alignment: center;
+                        //         color: #fefefe.darker(5%);
+                        //         // font-family: "MiSans";
+                        //         font-size: 12px;
+                        //         font-weight: 500;
+                        //         text: "×";
+                        //     }
+                        // }
                     }
                 }
             }
