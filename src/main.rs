@@ -1,11 +1,31 @@
 use slint::ComponentHandle;
 use slint::LogicalPosition;
+use std::path::PathBuf;
+use rfd::FileDialog;
+
+fn open_imgfile_dialog() -> PathBuf {
+    let img_file = FileDialog::new().add_filter("图片 Image", &["jpg","png","svg"]).pick_file();
+    match img_file {
+        Some(file) => {
+            return file;
+        },
+        None => {
+            return open_imgfile_dialog();
+        }
+    }
+}
 
 slint::include_modules!();
 fn main() {
     println!("OpenFrp Launcher!");
     let main = MainPage::new().unwrap();
-    
+    let handle4 = main.as_weak();
+    main.global::<User>().on_rfd_load_img(move || {
+        let main = handle4.upgrade().unwrap();
+        let img = slint::Image::load_from_path(&open_imgfile_dialog()).unwrap();
+        main.global::<User>().set_avatar(img)
+    });
+
     let handle = main.as_weak();
     main.on_close_win(move || {
         handle.upgrade().unwrap().hide().unwrap();

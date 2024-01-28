@@ -1,9 +1,12 @@
 import { Page } from "page.slint";
-import { Slider } from "std-widgets.slint";
+import { Slider , ScrollView} from "std-widgets.slint";
 import { ComboBox } from "../widgets/combo-box.slint";
+import { zh-cn } from "../../lang/zh_CN.slint";
+import { en } from "../../lang/en.slint";
+import { Translator } from "../../lang/translator.slint";
 
 component SettingsOption inherits Rectangle {
-    in property <string> option_name: "Title";
+    in property <string> name: "Title";
     in property <[image]> icons;
     in property <bool> has-icon: true;
     in property <angle> icon-angle: 0deg;
@@ -41,7 +44,7 @@ component SettingsOption inherits Rectangle {
         }
         option_name:=Text {
             vertical-alignment: center;
-            text: root.option-name;
+            text: root.name;
             width: self.min-width;
             font-size: 14px;
             font-weight: 500;
@@ -54,83 +57,112 @@ component SettingsOption inherits Rectangle {
 }
 
 export component SettingsPage inherits Page {
-    header: "设置";
+    zh-cn:=zh-cn {
+    }
+    en:=en {
+    }
+    in-out property <int> lang:0;
+    property <Translator> lang-trans: [zh-cn.lang,en.lang][lang];
+    header: lang-trans.settings;
     in-out property <bool> dark:false;
     in-out property <brush> option-colorize: dark?@linear-gradient(135deg,#d4d4d4af,#d7d7d7af):@linear-gradient(135deg,#2b2b2baf,#282828af);
     in-out property <brush> option-border-color: dark?#ffffff0f:#00000007;
     in-out property <brush> option-bg-color: dark?#ffffff07:#00000003;
     in-out property <float> win-opacity:0;
+    function language_changed() {
+        themes-cb.current-value = themes-cb.values[themes-cb.current-index];
+    }
     background: dark?#1f1f1f:#fefefe;
     animate option-bg-color,option-border-color,option-colorize {
         duration: 75ms;
         easing: cubic-bezier(0, 0.0, 0.75, 1);
     }
-    VerticalLayout {
+    Flickable {
         x:0px;
         y:0px;
-        spacing: 8px;
-        padding-left: -10px;
-        padding-right: -10px;
-        alignment: start;
-        opacity:=SettingsOption {
-            colorize: option-colorize;
-            has-icon: true;
-            icons: [@image-url("../../res/icons/settings/opacity.svg")];
-            option-name: "透明度";
-            icon-angle: 225deg;
-            border-color: option-border-color;
-            background: option-bg-color;
-            HorizontalLayout {
-                alignment: end;
-                Slider {
-                    width: 125px;
-                    minimum: 20;
-                    value: 100;
-                    changed => {
-                        root.win-opacity = self.value / self.maximum;
+        width: parent.width - 20px;
+        viewport-height: layout.min-height + 80px;
+        layout:=VerticalLayout {
+            x:10px;
+            y:0px;
+            spacing: 8px;
+            padding-left: -10px;
+            padding-right: 10px;
+            width: parent.width - 20px;
+            alignment: start;
+            opacity:=SettingsOption {
+                z:3;
+                colorize: option-colorize;
+                has-icon: true;
+                icons: [@image-url("../../res/icons/settings/opacity.svg")];
+                name: lang-trans.opacity;
+                icon-angle: 225deg;
+                border-color: option-border-color;
+                background: option-bg-color;
+                HorizontalLayout {
+                    alignment: end;
+                    Slider {
+                        width: 125px;
+                        minimum: 20;
+                        value: 100;
+                        changed => {
+                            root.win-opacity = self.value / self.maximum;
+                        }
                     }
                 }
             }
-        }
-        themes:=SettingsOption {
-            colorize: option-colorize;
-            has-icon: true;
-            icons: [@image-url("../../res/icons/settings/dark.svg"),@image-url("../../res/icons/settings/light.svg")];
-            border-color: option-border-color;
-            background: option-bg-color;
-            current-icon: dark?0:1;
-            option-name: "主题";
-            HorizontalLayout {
-                alignment: end;
-                ComboBox {
-                    bg-color: dark?#02020230:#fdfdfd30;
-                    text-color: dark?#aaaaaa:#555555;
-                    border-color: (dark?option-bg-color:option-bg-color).mix(#777,0.75);
-                    popup-bg-color: dark?#1f1f1f:#fdfdfd;
-                    popup-border-color: self.border-color;
-                    current-value: "白色";
-                    width: 100px;
-                    values: ["白色","深色"];
-                    selected => {
-                        dark = self.current-value == "深色";
+            themes:=SettingsOption {
+                z:2;
+                colorize: option-colorize;
+                has-icon: true;
+                icons: [@image-url("../../res/icons/settings/dark.svg"),@image-url("../../res/icons/settings/light.svg")];
+                border-color: option-border-color;
+                background: option-bg-color;
+                current-icon: dark?0:1;
+                name: lang-trans.themes;
+                HorizontalLayout {
+                    alignment: end;
+                    themes_cb:=ComboBox {
+                        bg-color: dark?#02020230:#fdfdfd30;
+                        text-color: dark?#aaaaaa:#555555;
+                        border-color: (dark?option-bg-color:option-bg-color).mix(#777,0.75);
+                        popup-bg-color: dark?#1f1f1f:#fdfdfd;
+                        popup-border-color: self.border-color;
+                        current-index: 0;
+                        current-value: themes-cb.values[themes-cb.current-index];
+                        width: 100px;
+                        values: [lang-trans.light-mode,lang-trans.dark-mode];
+                        selected => {
+                            dark = self.current-index == 1;
+                        }
                     }
                 }
-                // ComboBox {
-                //     current-value: "白色";
-                //     width: 100px;
-                //     model: ["白色","深色"];
-                //     selected => {
-                //         // self.enabled = false;
-                //         dark = self.current-value == "深色";
-                //     }
-                // }
-
-                // Switch {
-                //     checked: false;
-                //     toggled => {
-                //         dark = self.checked;
-                //     }
-                // }
+            }
+            language:=SettingsOption {
+                z:1;
+                colorize: option-colorize;
+                name: lang-trans.language;
+                has-icon: true;
+                border-color: option-border-color;
+                background: option-bg-color;
+                icons: [@image-url("../../res/icons/settings/earth.svg")];
+                HorizontalLayout {
+                    alignment: end;
+                    ComboBox {
+                        bg-color: dark?#02020230:#fdfdfd30;
+                        text-color: dark?#aaaaaa:#555555;
+                        border-color: (dark?option-bg-color:option-bg-color).mix(#777,0.75);
+                        popup-bg-color: dark?#1f1f1f:#fdfdfd;
+                        popup-border-color: self.border-color;
+                        current-value: "中文";
+                        width: 100px;
+                        values: ["中文","English"];
+                        selected => {
+                            lang = self.current-index;
+                            root.language-changed();
+                        }
+                    }
+                }
             }
         }
     }

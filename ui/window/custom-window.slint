@@ -111,6 +111,10 @@ export component CustomWindow inherits Window{
     }
 
     win:=Rectangle {
+        animate width,height {
+            duration: 0.5ms;
+            easing: cubic-bezier(0, 0.25, 0.75, 1);
+        }
         opacity: root.win-opacity;
         background: border-color;
         VerticalLayout {

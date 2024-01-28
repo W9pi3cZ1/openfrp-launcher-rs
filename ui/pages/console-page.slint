@@ -1,4 +1,15 @@
 import { Page } from "page.slint";
+import { zh-cn } from "../../lang/zh_CN.slint";
+import { en } from "../../lang/en.slint";
+import { Translator } from "../../lang/translator.slint";
 export component ConsolePage inherits Page {
-    header: "控制台";
+    zh_cn:=zh-cn {
+
+    }
+    en:=en {
+
+    }
+    in-out property <int> lang:0;
+    in-out property <Translator> lang_trans:[zh-cn.lang,en.lang][lang];
+    header: lang-trans.console;
 }

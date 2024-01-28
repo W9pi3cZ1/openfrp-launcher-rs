@@ -1,4 +1,28 @@
 import { Page } from "page.slint";
+import { Button } from "std-widgets.slint";
+import { zh-cn } from "../../lang/zh_CN.slint";
+import { en } from "../../lang/en.slint";
+import { Translator } from "../../lang/translator.slint";
 export component HomePage inherits Page {
-    header: "首页";
+    in-out property <string> username;
+    in-out property <image> user-avatar;
+    in-out property <bool> logged-in;
+    in property <int> lang:0;
+    callback rfd-load-img();
+    zh-cn:=zh-cn {
+        username: username;
+    }
+    en:=en {
+        username: username;
+    }
+    property <Translator> lang_trans: [zh-cn.lang,en.lang][lang];
+    header: logged-in?lang-trans.login-tips:lang-trans.no-login-tips;
+    Button {
+        text: logged-in?"Logged out test":"Logged in test";
+        clicked => {
+            username = logged-in?"":"XSlime";
+            if(!logged-in) {rfd-load-img();}
+            logged-in=!logged-in;
+        }
+    }
 }

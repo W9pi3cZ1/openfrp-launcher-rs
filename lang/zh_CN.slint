@@ -1,0 +1,24 @@
+import { Translator } from "./translator.slint";
+
+export component zh-cn {
+    in property <string> version: "a0.0.0";
+    in property <string> username;
+    in-out property <Translator> lang: {
+        title: @tr("OpenFrp Launcher {0}",version),
+        menu: "菜单",
+        home:"首页",
+        tunnel:"隧道",
+        console:"控制台",
+        settings: "设置",
+        opacity: "透明度",
+        language: "语言",
+        themes: "主题",
+        dark_mode: "深色",
+        light_mode: "浅色",
+        login_tips: @tr("你好，{0}",username),
+        no_login_tips: @tr("你还没有登录哦"),
+        tunnel: "隧道",
+        console: "控制台",
+        default-username:"请先登录",
+    };
+}

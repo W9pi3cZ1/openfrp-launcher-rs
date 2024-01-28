@@ -16,6 +16,19 @@ import { HomePage } from "./pages/home-page.slint";
 import { SettingsPage } from "./pages/settings-page.slint";
 import { TunnelPage } from "./pages/tunnel-page.slint";
 import { ConsolePage } from "./pages/console-page.slint";
+import { zh-cn } from "../lang/zh_CN.slint";
+import { Translator } from "../lang/translator.slint";
+import { en } from "../lang/en.slint";
+
+
+export { SettingsPage }
+
+export global User {
+    in-out property <bool> logged_in;
+    in-out property <string> name;
+    in-out property <image> avatar;
+    callback rfd-load-img();
+}
 
 component SideBarItem inherits Rectangle {
     in-out property <bool> active;
@@ -23,7 +36,8 @@ component SideBarItem inherits Rectangle {
     out property <bool> has-hover;
     has-hover <=> touch.has-hover;
 
-    GridLayout {
+    VerticalLayout {
+        alignment: center;
         @children
     }
 
@@ -34,21 +48,32 @@ component SideBarItem inherits Rectangle {
 
 export component MainPage inherits CustomWindow {
     property <bool> dark;
+    property <string> version: "a0.0.180";
+    property <int> lang: 0;
     title-color: dark?#fefefedf:#fefefecf;
-    property <brush> page-header-color:dark?@linear-gradient(135deg,#bae7ffdf,#ffaab7ef):@linear-gradient(135deg,#0058cfdf,#ef0028ef).darker(250%);
+    property <brush> page-header-color:dark?@linear-gradient(135deg,#eeeaffdf,#ffceeaef):@linear-gradient(135deg,#0058cfdf,#ef0028ef).darker(250%);
     property <brush> sbar-i-color-sel:dark?@linear-gradient(135deg,#40b8ffef,#ff4068ef):@linear-gradient(135deg,#0078ef,#ef0028);
     property <brush> sbar-i-color-unsel:dark?@linear-gradient(135deg,#d7eaff5f,#ffd7ee5f):@linear-gradient(135deg,#1b3b6baf,#381828af);
     border-color: dark?@linear-gradient(135deg,#0078ef,#ef0028).darker(300%):@linear-gradient(135deg,#0078efef,#0078ef7f).darker(5%);
-    min-height: 350px;
-    min-width: 350px;
+    min-height: 340px;
+    min-width: 400px;
     property <int> active_page: 0;
+    zh_cn:=zh_cn {
+        version: version;
+    }
+    en:=en {
+        version: version;
+    }
+    property <Translator> lang_trans:[zh-cn.lang,en.lang][lang];
+    in-out property <string> username: User.logged-in?User.name:lang-trans.default-username;
+    in-out property <image> user_avatar: User.logged-in?User.avatar:@image-url("../res/icons/sidebar/user.svg");
     // default-font-family: "MiSans";
-    title: "OpenFrp Launcher a0.0.167";
+
+    title: lang_trans.title;
     content-background: dark?#1f1f1f:#fefefe;
-    // icon: @image-url("../res/icons/sidebar/icon.png");
     border-radius: 4px;
     preferred-width: 480px;
-    preferred-height: 320px;
+    preferred-height: 340px;
     callback close_win();
     callback move_win(length,length);
     callback get_win_pos() -> {x:length,y:length};
@@ -101,136 +126,235 @@ export component MainPage inherits CustomWindow {
             background: dark?#ffffff03:#0000000f;
             property <length> padding-y: 16px;
             width: minimized?minimized-width:128px;
-            // clip: true;
+
             animate width {
                 duration: 200ms;
                 easing: cubic-bezier(0.75, 0.0, 0.25, 1);
             }
-            // background: black;
-            function item-y(index:int,backward:bool) -> length{
-                if(backward){
-                    return self.height - padding-y - (index + 1) * 45px;
-                }else{
-                    return padding-y + index * 45px;
-                }
-            }
-            
-            for items[index] in [
-                {
-                    text:"菜单",
-                    backward:false,
-                    index:0,
-                    icon:@image-url("../res/icons/sidebar/menu.svg"),
-                    func: "menu",
-                },
-                {
-                    text:"首页",
-                    backward:false,
-                    index:1,
-                    icon:@image-url("../res/icons/sidebar/home.svg"),
-                },
-                {
-                    text:"隧道",
-                    backward:false,
-                    index:2,
-                    icon:@image-url("../res/icons/sidebar/tunnel.svg"),
-                },
-                {
-                    text:"控制台",
-                    backward:false,
-                    index:3,
-                    icon:@image-url("../res/icons/sidebar/console.svg"),
-                },
-                {
-                    text:"设置",
-                    backward:true,
-                    index:0,
-                    icon:@image-url("../res/icons/sidebar/settings.svg"),
-                },
-            ]: SideBarItem {
-                property <int> page:index - 1;
-                activate => {
-                    if(items.func == "menu"){
-                        minimized=!minimized;
-                    }else{
-                        root.active-page = page;
+            no-backward:=VerticalLayout {
+                padding-top: padding-y + self.spacing;
+                padding-bottom: padding-y + self.spacing;
+                spacing: 4px;
+                alignment: start;
+                height: parent.height;
+                for items[index] in [
+                    {
+                        text:lang-trans.menu,
+                        icon:@image-url("../res/icons/sidebar/menu.svg"),
+                        func: "menu",
+                    },
+                    {
+                        text:username,
+                        icon:user-avatar,
+                        no-colorize:User.logged-in,
+                        func: "user",
+                    },
+                    {
+                        text:lang-trans.home,
+                        icon:@image-url("../res/icons/sidebar/home.svg"),
+                    },
+                    {
+                        text:lang-trans.tunnel,
+                        icon:@image-url("../res/icons/sidebar/tunnel.svg"),
+                    },
+                    {
+                        text:lang-trans.console,
+                        icon:@image-url("../res/icons/sidebar/console.svg"),
+                    },
+                ]: SideBarItem {
+                    property <int> page:index - 2;
+                    activate => {
+                        if(items.func == "menu"){
+                            minimized=!minimized;
+                        }else if(items.func == "user"){
+                            
+                        }else{
+                            root.active-page = page;
+                        }
                     }
-                }
-                x:0;
-                y: items.backward?item-y(items.index,true):item-y(items.index,false);
-                width: minimized?minimized-width:128px;
-                height: self.min-height;
-                border-radius: root.border-radius;
-                background: root.dark?(self.has-hover?#ffffff03:transparent):(self.has-hover?#00000007:transparent);
-                animate width,background {
-                    duration: 200ms;
-                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                }
-                Rectangle {
-                    width: parent.width;
-                    background: root.dark?(root.active-page==page?#ffffff0f:transparent):(root.active-page==page?#0000001f:transparent);
+                    x:0;
+                    width: minimized?minimized-width:128px;
+                    height: self.min-height;
                     border-radius: root.border-radius;
-                    layout:=HorizontalLayout {
-                        padding: 12px;
-                        padding-left: 16px;
-                        padding-right: 16px;
-                        spacing: 16px;
-                        alignment: space-between;
-                        icon:=Image {
-                            // height: title.min-height;
-                            width: title.min-height;
-                            source: items.icon;
-                            image-fit: contain;
-                            colorize: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
-                            animate colorize {
-                                duration: 200ms;
-                                easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                            }
-                            Image {
-                                opacity: 0.4;
-                                x:(root.active-page==page)?0.90px:0.00px;
-                                y:(root.active-page==page)?0.90px:0.00px;
-                                height: title.min-height;
-                                width: title.min-height;
+                    background: root.dark?(self.has-hover?#ffffff03:transparent):(self.has-hover?#00000007:transparent);
+                    animate width,background {
+                        duration: 200ms;
+                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    }
+                    Rectangle {
+                        width: parent.width;
+                        background: root.dark?(root.active-page==page?#ffffff0f:transparent):(root.active-page==page?#0000001f:transparent);
+                        border-radius: root.border-radius;
+                        property <bool> is_avatar: items.func == "user";
+                        layout1:=HorizontalLayout {
+                            padding: 12px;
+                            padding-left: is_avatar?16px - 3.5px:16px;
+                            padding-right: 16px;
+                            spacing: 16px;
+                            alignment: space-between;
+                            icon1:=Image {
+                                height: is_avatar?title1.min-height + 7px:title1.min-height;
+                                width: is_avatar?title1.min-height + 7px:title1.min-height;
                                 source: items.icon;
-                                colorize: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                animate x,y,colorize {
+                                image-fit: contain;
+                                colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                animate colorize {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                                 }
+                                icon_sd1:=Image {
+                                    opacity: 0.4;
+                                    image-fit: contain;
+                                    x:(root.active-page==page)?0.90px:0.00px;
+                                    y:(root.active-page==page)?0.90px:0.00px;
+                                    height: is_avatar?title1.min-height + 5px:title1.min-height;
+                                    width: is_avatar?title1.min-height + 5px:title1.min-height;
+                                    source: items.icon;
+                                    colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,colorize {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
                             }
-                        }
-                        title:=Text {
-                            opacity: minimized?0:1;
-                            font-weight: 500;
-                            text: items.text;
-                            font-size: 12px;
-                            color: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
-                            animate opacity,color {
-                                duration: 200ms;
-                                easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                            }
-                            Text {
-                                x:(root.active-page==page)?0.90px:0.00px;
-                                y:(root.active-page==page)?0.90px:0.00px;
-                                opacity: 0.4;
+                            title1:=Text {
+                                height: icon1.height+parent.padding-top+parent.padding-bottom;
+                                vertical-alignment: center;
+                                opacity: minimized?0:1;
                                 font-weight: 500;
                                 text: items.text;
                                 font-size: 12px;
-                                color: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                animate x,y,color {
+                                color: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                animate opacity,color {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                                 }
+                                Text {
+                                    height: icon1.height+parent.padding-top+parent.padding-bottom;
+                                    vertical-alignment: center;
+                                    x:(root.active-page==page)?0.90px:0.00px;
+                                    y:(root.active-page==page)?0.90px:0.00px;
+                                    opacity: 0.4;
+                                    font-weight: 500;
+                                    text: items.text;
+                                    font-size: 12px;
+                                    color: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,color {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
                             }
                         }
+                        init => {
+                            minimized-width = icon1.width+layout1.padding-left+layout1.padding-right;
+                        }
+                        animate background {
+                            duration: 200ms;
+                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                        }
                     }
-                    init => {
-                        minimized-width = icon.width+layout.padding-left+layout.padding-right;
+                }
+            }
+            backward:=VerticalLayout{
+                alignment: end;
+                padding-top: padding-y + self.spacing;
+                padding-bottom: padding-y + self.spacing;
+                spacing: 4px;
+                height: parent.height;
+                for items[index] in [
+                    {
+                        text:lang-trans.settings,
+                        icon:@image-url("../res/icons/sidebar/settings.svg"),
+                        func:"settings",
+                        no-colorize:false,
+                    },
+                ]: SideBarItem {
+                    property <int> page:index + 3;
+                    activate => {
+                        root.active-page = page;
                     }
-                    animate background {
+                    x:0;
+                    width: minimized?minimized-width:128px;
+                    height: self.min-height;
+                    border-radius: root.border-radius;
+                    background: root.dark?(self.has-hover?#ffffff03:transparent):(self.has-hover?#00000007:transparent);
+                    animate width,background {
                         duration: 200ms;
                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    }
+                    Rectangle {
+                        width: parent.width;
+                        background: root.dark?(root.active-page==page?#ffffff0f:transparent):(root.active-page==page?#0000001f:transparent);
+                        border-radius: root.border-radius;
+                        layout:=HorizontalLayout {
+                            padding: 12px;
+                            padding-left: 16px;
+                            padding-right: 16px;
+                            spacing: 16px;
+                            alignment: space-between;
+                            icon:=Image {
+                                property <bool> is_avatar: items.func == "user";
+                                height: is_avatar?title.min-height + 5px:title.min-height;
+                                width: is_avatar?title.min-height + 5px:title.min-height;
+                                source: items.icon;
+                                image-fit: contain;
+                                colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                animate colorize {
+                                    duration: 200ms;
+                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                }
+                                icon_sd:=Image {
+                                    opacity: 0.4;
+                                    x:(root.active-page==page)?0.90px:0.00px;
+                                    y:(root.active-page==page)?0.90px:0.00px;
+                                    height: is_avatar?title.min-height + 5px:title.min-height;
+                                    width: is_avatar?title.min-height + 5px:title.min-height;
+                                    image-fit: contain;
+                                    source: items.icon;
+                                    colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,colorize {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
+                            }
+                            title:=Text {
+                                height: icon.height+parent.padding-top+parent.padding-bottom;
+                                vertical-alignment: center;
+                                opacity: minimized?0:1;
+                                font-weight: 500;
+                                text: items.text;
+                                font-size: 12px;
+                                color: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                animate opacity,color {
+                                    duration: 200ms;
+                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                }
+                                Text {
+                                    height: icon.height+parent.padding-top+parent.padding-bottom;
+                                    vertical-alignment: center;
+                                    x:(root.active-page==page)?0.90px:0.00px;
+                                    y:(root.active-page==page)?0.90px:0.00px;
+                                    opacity: 0.4;
+                                    font-weight: 500;
+                                    text: items.text;
+                                    font-size: 12px;
+                                    color: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,color {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
+                            }
+                        }
+                        init => {
+                            minimized-width = icon.width+layout.padding-left+layout.padding-right;
+                        }
+                        animate background {
+                            duration: 200ms;
+                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                        }
                     }
                 }
             }
@@ -239,6 +363,12 @@ export component MainPage inherits CustomWindow {
             Rectangle {
                 clip: true;
                 HomePage {
+                    lang<=>lang;
+                    logged-in<=>User.logged-in;
+                    username<=>User.name;
+                    rfd-load-img => {
+                        User.rfd-load-img();
+                    }
                     property <bool> actived: root.active-page==0;
                     x:actived?0px:50%*(parent.width - self.min-width);
                     y:actived?0px:50%*(parent.height - self.min-height);
@@ -252,6 +382,7 @@ export component MainPage inherits CustomWindow {
                     }
                 }
                 TunnelPage {
+                    lang <=> lang;
                     property <bool> actived: root.active-page==1;
                     x:actived?0px:50%*(parent.width - self.min-width);
                     y:actived?0px:50%*(parent.height - self.min-height);
@@ -265,6 +396,7 @@ export component MainPage inherits CustomWindow {
                     }
                 }
                 ConsolePage {
+                    lang<=>lang;
                     property <bool> actived: root.active-page==2;
                     x:actived?0px:50%*(parent.width - self.min-width);
                     y:actived?0px:50%*(parent.height - self.min-height);
@@ -278,6 +410,7 @@ export component MainPage inherits CustomWindow {
                     }
                 }
                 SettingsPage {
+                    lang <=> lang;
                     property <bool> actived: root.active-page==3;
                     x:actived?0px:50%*(parent.width - self.min-width);
                     y:actived?0px:50%*(parent.height - self.min-height);
@@ -295,7 +428,4 @@ export component MainPage inherits CustomWindow {
             }
         }
     }
-    
-
-    
 }

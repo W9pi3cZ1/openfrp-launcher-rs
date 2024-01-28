@@ -1,3 +1,4 @@
+import { ScrollView } from "std-widgets.slint";
 export component Page inherits Rectangle {
     in property <string> header: "Demo";
     in property <length> padding-width:16px;
@@ -27,7 +28,7 @@ export component Page inherits Rectangle {
             color: header-color.darker(5%);
         }
     }
-    Rectangle {
+    rec:=Rectangle {
         x:padding-width;
         y:h.height + padding-height;
         width: parent.width - 2 * padding-width;

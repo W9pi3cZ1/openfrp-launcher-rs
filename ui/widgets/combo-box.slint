@@ -1,37 +1,43 @@
-export component RadiusLine inherits Path{
-    // width: 10px;
-    // height: 100px;
-    fill: #0060c0;
-    // stroke: #000;
-    // stroke-width: 1px;
-    property <bool> is_horizontal: false;
+// export component RadiusLine inherits Path{
+//     // width: 10px;
+//     // height: 100px;
+//     fill: #0060c0;
+//     // stroke: #000;
+//     // stroke-width: 1px;
+//     property <bool> is_horizontal: false;
 
-    MoveTo {
-        x: is-horizontal?0:parent.width / 1px;
-        y: 0;
-    }
-    ArcTo{
-        radius-x: 1;
-        radius-y: 1;
-        x:0;
-        y:is-horizontal?parent.height / 1px:0;
-    }
-    LineTo{
-        x:is-horizontal?parent.width / 1px:0;
-        y:parent.height / 1px;
-    }
-    ArcTo {
-        radius-x: 1;
-        radius-y: 1;
-        x:parent.width / 1px;
-        y:is-horizontal?0:parent.height / 1px;
-    }
-    Close {
-    }
+//     MoveTo {
+//         x: is-horizontal?0:parent.width / 1px;
+//         y: 0;
+//     }
+//     ArcTo{
+//         radius-x: 1;
+//         radius-y: 1;
+//         x:0;
+//         y:is-horizontal?parent.height / 1px:0;
+//     }
+//     LineTo{
+//         x:is-horizontal?parent.width / 1px:0;
+//         y:parent.height / 1px;
+//     }
+//     ArcTo {
+//         radius-x: 1;
+//         radius-y: 1;
+//         x:parent.width / 1px;
+//         y:is-horizontal?0:parent.height / 1px;
+//     }
+//     Close {
+//     }
+// }
+export component RadiusLine inherits Rectangle{
+    // property <bool> is_horizontal: false;
+    border-radius: min(0.5 * self.height,0.5*self.width);
+    background: #0060c0;
 }
 
 export component ComboBox inherits Rectangle {
     in-out property <string> current-value: "Demo";
+    in-out property <int> current-index: 0;
     in property <[string]> values: ["Demo", "Test", "Other"];
     in property <brush> popup-border-color: @linear-gradient(0deg, #ddd7, #eee7,#eee7);
     in property <brush> popup-bg-color: #fdfdfd;
@@ -39,6 +45,7 @@ export component ComboBox inherits Rectangle {
     in property <length> popup-border-width: 0.8px;
     in-out property <brush> text-color: #555;
     callback selected();
+    z:-9;
     // height: 32px;
     preferred-height: 100%;
     preferred-width: 72px;
@@ -124,6 +131,7 @@ export component ComboBox inherits Rectangle {
                         clicked => {
                             // parent.selected = true;
                             root.current-value = val;
+                            root.current-index = index;
                             root.selected();
                             popup.show = false;
                         }
