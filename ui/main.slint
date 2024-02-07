@@ -11,7 +11,7 @@
 
 import { CustomWindow } from "./window/custom-window.slint";
 import { OpenFrpAPIWatermark } from "./window/openfrp-api-watermark.slint";
-import { ListView , Slider} from "std-widgets.slint";
+import { ListView , Slider, Button, TextEdit} from "std-widgets.slint";
 import { HomePage } from "./pages/home-page.slint";
 import { SettingsPage } from "./pages/settings-page.slint";
 import { TunnelPage } from "./pages/tunnel-page.slint";
@@ -19,6 +19,9 @@ import { ConsolePage } from "./pages/console-page.slint";
 import { zh-cn } from "../lang/zh_CN.slint";
 import { Translator } from "../lang/translator.slint";
 import { en } from "../lang/en.slint";
+import { CustomDialog } from "widgets/dialog.slint";
+import { CustomLineEdit } from "widgets/line-edit.slint";
+import { CustomButton } from "widgets/button.slint";
 
 
 export { SettingsPage }
@@ -26,8 +29,10 @@ export { SettingsPage }
 export global User {
     in-out property <bool> logged_in;
     in-out property <string> name;
-    in-out property <image> avatar;
+    in-out property <image> avatar:@image-url("../res/icon.png");
+    in-out property <bool> logging_in;
     callback rfd-load-img();
+    callback login(string,string);
 }
 
 component SideBarItem inherits Rectangle {
@@ -36,13 +41,142 @@ component SideBarItem inherits Rectangle {
     out property <bool> has-hover;
     has-hover <=> touch.has-hover;
 
+    fs:=FocusScope {
+
+    }
+
     VerticalLayout {
         alignment: center;
         @children
     }
 
     touch:=TouchArea {
-        clicked => { root.activate(); }
+        clicked => { fs.focus();root.activate(); }
+    }
+}
+
+export component LoginDialog inherits Rectangle{
+    property <string> title:lang-trans.login;
+    in-out property <int> lang;
+    zh_cn:=zh_cn {
+    }
+    en:=en {
+    }
+    property <Translator> lang_trans:[zh-cn.lang,en.lang][lang];
+    // in-out property <bool> show:true;
+    in-out property <bool> show;
+    in-out property <bool> dark;
+    in-out property <brush> title-color:#010101;
+    in-out property <brush> dialog-bg:#efefef;
+    in-out property <brush> dialog-border-color:#7777773f;
+    in-out property <brush> context-bg:#fefefe;
+    in-out property <brush> mask-color:show?#3333337f:#33333300;
+    callback open();
+    open => {
+        email-input.value="";
+        password-input.value="";
+        show = !show;
+    }
+    // opacity: show?1:0;
+    Rectangle {
+        touch:=TouchArea {
+            width: show?parent.width:0;
+            height: show?parent.height:0;
+        }
+        border-radius: 4px;
+        background: mask-color;
+        sub_dialog:=CustomDialog {
+            TouchArea {
+                mouse-cursor: default;
+                clicked => {
+                    fs.focus();
+                }
+            }
+            fs:=FocusScope {
+                width: 0;
+                height: 0;
+            }
+            dark <=> root.dark;
+            close => {
+                root.show = false;
+            }
+            VerticalLayout {
+                x:0;
+                y:0;
+                padding: 10px;
+                spacing: 8px;
+                alignment: center;
+                email:=HorizontalLayout {
+                    height: self.min-height;
+                    alignment: space-between;
+                    email_label:=Text {
+                        width: self.min-width;
+                        color: sub-dialog.title-color;
+                        text: lang-trans.email;
+                        font-size: 14px;
+                    }
+                    email_input:=CustomLineEdit {
+                        y:0;
+                        width: min(parent.width - password-label.width,parent.width - email_label.width);
+                        height: email_label.min-height;
+                        placeholder: lang-trans.email-placeholder;
+                        font-size: 12px;
+                        text-color: sub-dialog.title-color;
+                    }
+                }
+                password:=HorizontalLayout {
+                    height: self.min-height;
+                    alignment: space-between;
+                    password_label:=Text {
+                        width: self.min-width;
+                        color: sub-dialog.title-color;
+                        text: lang-trans.password;
+                        font-size: 14px;
+                    }
+                    password_input:=CustomLineEdit {
+                        y:0;
+                        width: min(parent.width - password-label.width,parent.width - email_label.width);
+                        height: password-label.min-height;
+                        placeholder: lang-trans.password-placeholder;
+                        font-size: 12px;
+                        input-type: InputType.password;
+                        text-color: sub-dialog.title-color;
+                    }
+                }
+                bottom:=HorizontalLayout{
+                    alignment: end;
+                    submit:=CustomButton {
+                        width: 80px;
+                        dark: root.dark;
+                        text: lang-trans.login;
+                        height: 24px;
+                        bg: dark?#1575d5df:#0060c0df;
+                        text-color: #fefefe;
+                        br-color: dark?#1575d53f:#0060c03f;
+                        clicked => {
+                            if(email_input.value != "" && password_input.value != ""){
+                                User.login(email_input.value,password_input.value);
+                            }
+                        }
+                    }
+                }
+            }
+            title: root.title;
+            // width: min(250px,parent.width);
+            // height: min(225px,parent.height);
+            width: show?250px:0px;
+            height: show?225px:0px;
+            // clip: true;
+            opacity: show?1:0;
+            animate width,height,opacity {
+                duration: 100ms;
+                easing: cubic-bezier(0.5, 0.0, 0.5, 1);
+            }
+            drop-shadow-blur: 2px;
+            drop-shadow-offset-x: 0px;
+            drop-shadow-offset-y: 0px;
+            drop-shadow-color: self.title-color.transparentize(0.8);
+        }
     }
 }
 
@@ -54,8 +188,8 @@ export component MainPage inherits CustomWindow {
     property <brush> page-header-color:dark?@linear-gradient(135deg,#eeeaffdf,#ffceeaef):@linear-gradient(135deg,#0058cfdf,#ef0028ef).darker(250%);
     property <brush> sbar-i-color-sel:dark?@linear-gradient(135deg,#40b8ffef,#ff4068ef):@linear-gradient(135deg,#0078ef,#ef0028);
     property <brush> sbar-i-color-unsel:dark?@linear-gradient(135deg,#d7eaff5f,#ffd7ee5f):@linear-gradient(135deg,#1b3b6baf,#381828af);
-    border-color: dark?@linear-gradient(135deg,#0078ef,#ef0028).darker(300%):@linear-gradient(135deg,#0078efef,#0078ef7f).darker(5%);
-    min-height: 340px;
+    border-color: dark?@linear-gradient(135deg,#1a2633,#331a1e):@linear-gradient(135deg,#0078effe,#0078efcf).darker(5%);
+    min-height: 350px;
     min-width: 400px;
     property <int> active_page: 0;
     zh_cn:=zh_cn {
@@ -73,7 +207,7 @@ export component MainPage inherits CustomWindow {
     content-background: dark?#1f1f1f:#fefefe;
     border-radius: 4px;
     preferred-width: 480px;
-    preferred-height: 340px;
+    preferred-height: 350px;
     callback close_win();
     callback move_win(length,length);
     callback get_win_pos() -> {x:length,y:length};
@@ -104,6 +238,19 @@ export component MainPage inherits CustomWindow {
         move_win(offset_x,offset_y);
         root.update-pos();
     }
+    ld:=LoginDialog {
+        z:99;
+        dark <=> root.dark;
+        lang <=> root.lang;
+        // x:0px;
+        // y:0px;
+        width: self.show?100%:100%;
+        height: self.show?100%:100%;
+        animate mask-color {
+            duration: 75ms;
+            easing: cubic-bezier(0, 0.0, 0.75, 1);
+        }
+    }
 
     VerticalLayout {
         alignment: end;
@@ -126,7 +273,6 @@ export component MainPage inherits CustomWindow {
             background: dark?#ffffff03:#0000000f;
             property <length> padding-y: 16px;
             width: minimized?minimized-width:128px;
-
             animate width {
                 duration: 200ms;
                 easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -148,6 +294,7 @@ export component MainPage inherits CustomWindow {
                         icon:user-avatar,
                         no-colorize:User.logged-in,
                         func: "user",
+                        // img-rendering:User.logged-in?ImageRendering.pixelated:ImageRendering.smooth,
                     },
                     {
                         text:lang-trans.home,
@@ -162,12 +309,13 @@ export component MainPage inherits CustomWindow {
                         icon:@image-url("../res/icons/sidebar/console.svg"),
                     },
                 ]: SideBarItem {
-                    property <int> page:index - 2;
+                    property <int> page: index - 2;
+                    property <bool> actived: active_page == page;
                     activate => {
                         if(items.func == "menu"){
                             minimized=!minimized;
                         }else if(items.func == "user"){
-                            
+                            ld.open();
                         }else{
                             root.active-page = page;
                         }
@@ -183,21 +331,22 @@ export component MainPage inherits CustomWindow {
                     }
                     Rectangle {
                         width: parent.width;
-                        background: root.dark?(root.active-page==page?#ffffff0f:transparent):(root.active-page==page?#0000001f:transparent);
+                        background: root.dark?(actived?#ffffff0f:transparent):(actived?#0000001f:transparent);
                         border-radius: root.border-radius;
                         property <bool> is_avatar: items.func == "user";
                         layout1:=HorizontalLayout {
                             padding: 12px;
-                            padding-left: is_avatar?16px - 3.5px:16px;
+                            padding-left: is_avatar?16px - 4px:16px;
                             padding-right: 16px;
                             spacing: 16px;
                             alignment: space-between;
                             icon1:=Image {
-                                height: is_avatar?title1.min-height + 7px:title1.min-height;
-                                width: is_avatar?title1.min-height + 7px:title1.min-height;
+                                height: is_avatar?title1.min-height + 8px:title1.min-height;
+                                width: is_avatar?title1.min-height + 8px:title1.min-height;
                                 source: items.icon;
                                 image-fit: contain;
-                                colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                image-rendering: smooth;
+                                colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
                                 animate colorize {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -205,12 +354,28 @@ export component MainPage inherits CustomWindow {
                                 icon_sd1:=Image {
                                     opacity: 0.4;
                                     image-fit: contain;
-                                    x:(root.active-page==page)?0.90px:0.00px;
-                                    y:(root.active-page==page)?0.90px:0.00px;
-                                    height: is_avatar?title1.min-height + 5px:title1.min-height;
-                                    width: is_avatar?title1.min-height + 5px:title1.min-height;
+                                    x:(actived)?0.80px:0.50px;
+                                    y:(actived)?0.80px:0.50px;
+                                    height: is_avatar?title1.min-height + 8px:title1.min-height;
+                                    width: is_avatar?title1.min-height + 8px:title1.min-height;
+                                    image-rendering: smooth;
                                     source: items.icon;
-                                    colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,colorize {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
+                                icon_sd2:=Image {
+                                    opacity: 0.4;
+                                    image-fit: contain;
+                                    x:(actived)?-0.60px:-0.50px;
+                                    y:(actived)?-0.60px:-0.50px;
+                                    height: is_avatar?title1.min-height + 8px:title1.min-height;
+                                    width: is_avatar?title1.min-height + 8px:title1.min-height;
+                                    image-rendering: smooth;
+                                    source: items.icon;
+                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
                                     animate x,y,colorize {
                                         duration: 200ms;
                                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -224,7 +389,7 @@ export component MainPage inherits CustomWindow {
                                 font-weight: 500;
                                 text: items.text;
                                 font-size: 12px;
-                                color: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                color: (actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
                                 animate opacity,color {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -232,13 +397,28 @@ export component MainPage inherits CustomWindow {
                                 Text {
                                     height: icon1.height+parent.padding-top+parent.padding-bottom;
                                     vertical-alignment: center;
-                                    x:(root.active-page==page)?0.90px:0.00px;
-                                    y:(root.active-page==page)?0.90px:0.00px;
+                                    x:(actived)?0.90px:0.10px;
+                                    y:(actived)?0.90px:0.10px;
                                     opacity: 0.4;
                                     font-weight: 500;
                                     text: items.text;
                                     font-size: 12px;
-                                    color: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,color {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
+                                Text {
+                                    height: icon1.height+parent.padding-top+parent.padding-bottom;
+                                    vertical-alignment: center;
+                                    x:(actived)?-0.45px:-0.05px;
+                                    y:(actived)?-0.45px:-0.05px;
+                                    opacity: 0.4;
+                                    font-weight: 500;
+                                    text: items.text;
+                                    font-size: 12px;
+                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
                                     animate x,y,color {
                                         duration: 200ms;
                                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -271,6 +451,7 @@ export component MainPage inherits CustomWindow {
                     },
                 ]: SideBarItem {
                     property <int> page:index + 3;
+                    property <bool> actived: active_page == page;
                     activate => {
                         root.active-page = page;
                     }
@@ -285,7 +466,7 @@ export component MainPage inherits CustomWindow {
                     }
                     Rectangle {
                         width: parent.width;
-                        background: root.dark?(root.active-page==page?#ffffff0f:transparent):(root.active-page==page?#0000001f:transparent);
+                        background: root.dark?(actived?#ffffff0f:transparent):(actived?#0000001f:transparent);
                         border-radius: root.border-radius;
                         layout:=HorizontalLayout {
                             padding: 12px;
@@ -299,20 +480,36 @@ export component MainPage inherits CustomWindow {
                                 width: is_avatar?title.min-height + 5px:title.min-height;
                                 source: items.icon;
                                 image-fit: contain;
-                                colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
                                 animate colorize {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                                 }
                                 icon_sd:=Image {
                                     opacity: 0.4;
-                                    x:(root.active-page==page)?0.90px:0.00px;
-                                    y:(root.active-page==page)?0.90px:0.00px;
-                                    height: is_avatar?title.min-height + 5px:title.min-height;
-                                    width: is_avatar?title.min-height + 5px:title.min-height;
                                     image-fit: contain;
+                                    x:(actived)?0.80px:0.50px;
+                                    y:(actived)?0.80px:0.50px;
+                                    height: is_avatar?title.min-height + 8px:title.min-height;
+                                    width: is_avatar?title.min-height + 8px:title.min-height;
+                                    image-rendering: smooth;
                                     source: items.icon;
-                                    colorize: items.no-colorize?#0000:(root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,colorize {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
+                                icon_sd3:=Image {
+                                    opacity: 0.4;
+                                    image-fit: contain;
+                                    x:(actived)?-0.60px:-0.50px;
+                                    y:(actived)?-0.60px:-0.50px;
+                                    height: is_avatar?title.min-height + 8px:title.min-height;
+                                    width: is_avatar?title.min-height + 8px:title.min-height;
+                                    image-rendering: smooth;
+                                    source: items.icon;
+                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
                                     animate x,y,colorize {
                                         duration: 200ms;
                                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -326,7 +523,7 @@ export component MainPage inherits CustomWindow {
                                 font-weight: 500;
                                 text: items.text;
                                 font-size: 12px;
-                                color: (root.active-page==page)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                color: (actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
                                 animate opacity,color {
                                     duration: 200ms;
                                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -334,13 +531,28 @@ export component MainPage inherits CustomWindow {
                                 Text {
                                     height: icon.height+parent.padding-top+parent.padding-bottom;
                                     vertical-alignment: center;
-                                    x:(root.active-page==page)?0.90px:0.00px;
-                                    y:(root.active-page==page)?0.90px:0.00px;
+                                    x:(actived)?0.90px:0.10px;
+                                    y:(actived)?0.90px:0.10px;
                                     opacity: 0.4;
                                     font-weight: 500;
                                     text: items.text;
                                     font-size: 12px;
-                                    color: (root.active-page==page)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                    animate x,y,color {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                }
+                                Text {
+                                    height: icon.height+parent.padding-top+parent.padding-bottom;
+                                    vertical-alignment: center;
+                                    x:(actived)?-0.45px:-0.05px;
+                                    y:(actived)?-0.45px:-0.05px;
+                                    opacity: 0.4;
+                                    font-weight: 500;
+                                    text: items.text;
+                                    font-size: 12px;
+                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
                                     animate x,y,color {
                                         duration: 200ms;
                                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
@@ -360,71 +572,118 @@ export component MainPage inherits CustomWindow {
             }
         }
         main-view:= Rectangle{
-            Rectangle {
-                clip: true;
-                HomePage {
-                    lang<=>lang;
-                    logged-in<=>User.logged-in;
-                    username<=>User.name;
-                    rfd-load-img => {
-                        User.rfd-load-img();
-                    }
-                    property <bool> actived: root.active-page==0;
-                    x:actived?0px:50%*(parent.width - self.min-width);
-                    y:actived?0px:50%*(parent.height - self.min-height);
-                    width: actived?parent.width:0;
-                    height: actived?parent.height:0;
-                    header-color: page-header-color;
-                    opacity: actived?1:0;
-                    animate x,y,width,height,opacity {
-                        duration: 200ms;
-                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                    }
+            border-radius: 4px;
+            // clip: true;
+            HomePage {
+                lang<=>lang;
+                logged-in<=>User.logged-in;
+                username<=>User.name;
+                rfd-load-img => {
+                    User.rfd-load-img();
                 }
-                TunnelPage {
-                    lang <=> lang;
-                    property <bool> actived: root.active-page==1;
-                    x:actived?0px:50%*(parent.width - self.min-width);
-                    y:actived?0px:50%*(parent.height - self.min-height);
-                    width: actived?parent.width:0;
-                    height: actived?parent.height:0;
-                    header-color: page-header-color;
-                    opacity: actived?1:0;
-                    animate x,y,width,height,opacity {
-                        duration: 200ms;
-                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                    }
+                property <bool> actived: root.active-page==0;
+                property <bool> actived_in_up: root.active_page<0;
+                x:0px;
+                y:actived?0px:- root.height;
+                width: 100%;
+                height: 100%;
+                header-color: page-header-color;
+                opacity: actived?1:0;
+                animate opacity {
+                    // delay: actived?200ms:0ms;
+                    duration: 200ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
-                ConsolePage {
-                    lang<=>lang;
-                    property <bool> actived: root.active-page==2;
-                    x:actived?0px:50%*(parent.width - self.min-width);
-                    y:actived?0px:50%*(parent.height - self.min-height);
-                    width: actived?parent.width:0;
-                    height: actived?parent.height:0;
-                    header-color: page-header-color;
-                    opacity: actived?1:0;
-                    animate x,y,width,height,opacity {
-                        duration: 200ms;
-                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                    }
+                animate x,y {
+                    delay: 100ms;
+                    duration: 1ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
-                SettingsPage {
-                    lang <=> lang;
-                    property <bool> actived: root.active-page==3;
-                    x:actived?0px:50%*(parent.width - self.min-width);
-                    y:actived?0px:50%*(parent.height - self.min-height);
-                    width: actived?parent.width:0;
-                    height: actived?parent.height:0;
-                    header-color: page-header-color;
-                    win-opacity <=> root.win-opacity;
-                    dark <=> root.dark;
-                    opacity: actived?1:0;
-                    animate x,y,width,height,opacity {
-                        duration: 200ms;
-                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                    }
+                // animate width,height {
+                //     delay: 200ms;
+                //     duration: 0ms;
+                //     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                // }
+            }
+            TunnelPage {
+                lang <=> lang;
+                property <bool> actived: root.active-page==1;
+                property <bool> actived_in_up: root.active_page<1;
+                x:0px;
+                y:actived?0px:- root.height;
+                width: 100%;
+                height: 100%;
+                header-color: page-header-color;
+                opacity: actived?1:0;
+                animate opacity {
+                    // delay: actived?200ms:0ms;
+                    duration: 200ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
+                animate x,y {
+                    delay: 100ms;
+                    duration: 1ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                }
+                // animate width,height {
+                //     delay: 200ms;
+                //     duration: 0ms;
+                //     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                // }
+            }
+            ConsolePage {
+                lang<=>lang;
+                property <bool> actived: root.active-page==2;
+                property <bool> actived_in_up: root.active_page<2;
+                x:0px;
+                y:actived?0px:- root.height;
+                width: 100%;
+                height: 100%;
+                header-color: page-header-color;
+                opacity: actived?1:0;
+                animate opacity {
+                    // delay: actived?200ms:0ms;
+                    duration: 200ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                }
+                animate x,y {
+                    delay: 100ms;
+                    duration: 1ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                }
+                // animate width,height {
+                //     delay: 200ms;
+                //     duration: 0ms;
+                //     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                // }
+            }
+            SettingsPage {
+                lang <=> lang;
+                property <bool> actived: root.active-page==3;
+                property <bool> actived_in_up: root.active_page<3;
+                x:0px;
+                y:actived?0px:- root.height;
+                width: 100%;
+                height: 100%;
+                header-color: page-header-color;
+                win-opacity <=> root.win-opacity;
+                dark <=> root.dark;
+                opacity: actived?1:0;
+                animate opacity {
+                    // delay: actived?200ms:0ms;
+                    duration: 200ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                }
+                animate x,y {
+                    delay: 100ms;
+                    duration: 1ms;
+                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                }
+                // animate width,height {
+                //     delay: 200ms;
+                //     duration: 0ms;
+                //     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                // }
             }
         }
     }

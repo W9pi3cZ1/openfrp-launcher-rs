@@ -72,16 +72,25 @@ export component SettingsPage inherits Page {
     function language_changed() {
         themes-cb.current-value = themes-cb.values[themes-cb.current-index];
     }
-    background: dark?#1f1f1f:#fefefe;
+    // background: dark?#1f1f1f:#fefefe;
     animate option-bg-color,option-border-color,option-colorize {
         duration: 75ms;
         easing: cubic-bezier(0, 0.0, 0.75, 1);
+    }
+    forward-focus: fs;
+    fs:=FocusScope {
+
     }
     Flickable {
         x:0px;
         y:0px;
         width: parent.width - 20px;
         viewport-height: layout.min-height + 80px;
+        FocusScope {
+            width: parent.width;
+            height: parent.height;
+            forward-focus: fs;    
+        }
         layout:=VerticalLayout {
             x:10px;
             y:0px;

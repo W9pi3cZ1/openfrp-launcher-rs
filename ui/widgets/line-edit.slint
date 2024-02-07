@@ -1,0 +1,117 @@
+import { RadiusLine } from "combo-box.slint";
+export component CustomLineEdit inherits Rectangle {
+    in-out property <string> value <=> input.text;
+    in-out property <string> placeholder;
+    in-out property <brush> placeholder-color: #7f7f7fe0;
+    in-out property <brush> text-color: #000000;
+    in-out property <length> font-size: 12px;
+    in-out property <length> placeholder-font-size: self.font-size;
+    in-out property <int> font-weight: 400;
+    in-out property <string> font-family;
+    in-out property <bool> font-italic;
+    in-out property <brush> br-color: #cfcfcf;
+    in-out property <InputType> input-type: InputType.text;
+    function unfocus(){
+        fs.focus();
+    }
+    forward-focus: input;
+    // background: #fefefe;
+    // border-width: 1.2px;
+    // border-color: input.has-focus?br-color.transparentize(0.8):br-color.transparentize(0.9);
+    // border-radius: 4px;
+    RadiusLine {
+        background: br-color;
+        y:parent.height - self.height;
+        width: parent.width;
+        height: input.has-focus?2px:1px;
+        animate height {
+            duration: 100ms;
+            easing: ease-in-out;
+        }
+    }
+    RadiusLine {
+        background: input.has-focus?#0080e0:br-color;
+        y:parent.height - self.height;
+        width: input.has-focus?parent.width:0px;
+        height: input.has-focus?2px:1px;
+        animate background,width,height {
+            duration: 100ms;
+            easing: ease-in-out;
+        }
+    }
+    padding: 8px;
+    placeholder:=Text{
+        opacity: input.text!=""?0:1;
+        x:parent.padding;
+        y:(parent.height - self.min-height)/2;
+        color: input.has-focus?placeholder-color:placeholder-color.transparentize(0.2);
+        text: root.placeholder;
+        font-size: placeholder-font-size;
+        font-italic: font-italic;
+        font-family: font-family;
+        font-weight: font-weight;
+    }
+    input-box:=Rectangle{
+        clip: true;
+        x:root.padding;
+        width: parent.width  - clear-icon.width - root.padding * 2;
+        input:=TextInput{
+            property <length> computed-x;
+            x: min(0px, max(parent.width - self.width - self.text-cursor-width, self.computed-x));
+            width: max(parent.width - self.text-cursor-width, self.preferred-width);
+            height: parent.height;
+            selection-background-color: #0060c07f;
+            selection-foreground-color: text-color;
+            y:(root.height - self.min-height)/2;
+            single-line: true;
+            wrap: TextWrap.no-wrap;
+            color: text-color;
+            font-size: font-size;
+            font-italic: font-italic;
+            font-family: font-family;
+            font-weight: font-weight;
+            input-type: input-type;
+            
+            cursor-position-changed(cpos) => {
+                if (cpos.x + self.computed_x < root.padding) {
+                    self.computed_x = - cpos.x + root.padding;
+                } else if (cpos.x + self.computed_x > parent.width - root.padding - self.text-cursor-width) {
+                    self.computed_x = parent.width - cpos.x - root.padding - self.text-cursor-width;
+                }
+            }
+        }
+    }
+    clear_icon:=Image {
+        x:parent.width - self.width - parent.padding;
+        y:(parent.height - self.height)/2;
+        opacity: input.text!=""&&input.has-focus?1:0;
+        width: 12px;
+        height: 12px;
+        image-fit: contain;
+        colorize: clear-touch.has-hover?clear-touch.pressed?text-color.transparentize(0.35):text-color.transparentize(0.4):text-color.transparentize(0.5);
+        source: @image-url("../../res/icons/window/close.svg");
+        clear_touch:=TouchArea {
+            width: input.text!=""&&input.has-focus?100%:0%;
+            height: input.text!=""&&input.has-focus?100%:0%;
+            clicked => {
+                input.text = "";
+            }
+            mouse-cursor: pointer;
+        }
+        Image {
+            x:0.4px;
+            y:0.4px;
+            opacity: 0.3;
+            width: 12px;
+            height: 12px;
+            image-fit: contain;
+            colorize: clear-touch.has-hover?clear-touch.pressed?text-color.transparentize(0.35):text-color.transparentize(0.4):text-color.transparentize(0.5);
+            source: @image-url("../../res/icons/window/close.svg");
+        }
+    }
+    fs:=FocusScope{
+        width: 0;
+        height: 0;
+        visible: false;
+    }
+}

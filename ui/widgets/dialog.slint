@@ -1,0 +1,76 @@
+export component CustomDialog inherits Rectangle {
+    in-out property <string> title:"Dialog";
+    in-out property <bool> dark:true;
+    in-out property <brush> title-color:dark?#dedede:#010101;
+    in-out property <brush> dialog-bg:dark?#303030:#efefef;
+    in-out property <brush> dialog-border-color:dark?#7777775f:#7777773f;
+    in-out property <brush> context-bg:dark?#2b2b2b:#fefefe;
+    callback close();
+    background: @linear-gradient(0deg,dialog-bg.darker(5%),dialog-bg);
+    border-radius: 6px;
+    // clip: true;
+    border-color: @linear-gradient(0deg,dialog-border-color.darker(5%).transparentize(0.3),dialog-border-color.transparentize(0.3));
+    border-width: 1px;
+    VerticalLayout {
+        padding: 1px;
+        spacing: 1px;
+        HorizontalLayout {
+            height: 32px;
+            padding: 8px;
+            alignment: space-between;
+            title:=Text {
+                font-weight: 500;
+                // y:(parent.height - self.height)/2 - parent.padding-top - parent.padding-bottom;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                color: title-color;
+                width: self.min-width;
+                height: self.min-height;
+                text: root.title;
+                font-size: 12px;
+            }
+            // Rectangle {
+            //     y:(parent.height - self.height)/2 - parent.padding-top - parent.padding-bottom;
+            //     width: 16px;
+            //     height: 16px;
+            //     background: #fff8;
+            // }
+            Rectangle {
+                border-radius: 4px;
+                border-width: 0.8px;
+                border-color: touch.has-hover? touch.pressed? root.border-color.transparentize(0.7) : root.border-color.transparentize(0.75) : root.border-color.transparentize(0.8);
+                background: touch.has-hover? touch.pressed? root.border-color.transparentize(0.8) : root.border-color.transparentize(0.85) : root.border-color.transparentize(0.9);
+                width: 16px;
+                height: 16px;
+                touch := TouchArea {
+                    clicked => { close() }
+                }
+                Image {
+                    width: 12px;
+                    height: 12px;
+                    image-fit: contain;
+                    colorize: touch.has-hover? touch.pressed? title-color.transparentize(0.3) : title-color.transparentize(0.5) : title-color.transparentize(0.8);
+                    source: @image-url("../../res/icons/window/close.svg");
+                    Image {
+                        x:0.4px;
+                        y:0.4px;
+                        opacity: 0.3;
+                        width: 12px;
+                        height: 12px;
+                        image-fit: contain;
+                        colorize: touch.has-hover? touch.pressed? title-color.transparentize(0.3) : title-color.transparentize(0.5) : title-color.transparentize(0.8);
+                        source: @image-url("../../res/icons/window/close.svg");
+                    }
+                }
+            }
+        }
+        context-view:=Rectangle {
+            background: context-bg;
+            // clip: true;
+            border-color: @linear-gradient(0deg,dialog-border-color.darker(5%),dialog-border-color);
+            border-radius: root.border-radius;
+            border-width: 0.8px;
+            @children
+        }
+    }
+}

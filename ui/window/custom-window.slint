@@ -20,14 +20,13 @@ export component CustomWindow inherits Window{
 
     callback update_pos();
 
-    in-out property <{x:length,y:length}> position: {x:0,y:0};
+    in-out property <{x:length,y:length}> position: {x:0px,y:0px};
     in-out property <{x:length,y:length}> br-position: {x:0,y:0};
     // in-out property <{x:length,y:length}> old-br-position: {x:0,y:0};
-    in-out property <{x:length,y:length}> old-position: {x:0,y:0};
+    in-out property <{x:length,y:length}> old-position: {x:0px,y:0px};
     in-out property <{width:length,height:length}> old-size;
 
     in property <float> win_opacity: 1;
-    property <{x:length,y:length}> drag-area-down: {x:0,y:0};
     property <bool> drag-area-pressed;
     property <length> area-size: 8px;
     in property <length> border-width: 2px;
@@ -100,23 +99,25 @@ export component CustomWindow inherits Window{
         }
     }
 
-    function drag-area-event(event: PointerEvent,mx: length,my:length) {
+    function drag-area-event(event: PointerEvent,px: length,py:length) {
         drag-area-pressed = event.kind == PointerEventKind.down;
         if(drag-area-pressed){
             update-pos();
             old-position = position;
             br-position = {x:position.x+root.width,y:position.y+root.height};
         }
-        drag-area-down = {x:mx,y:my};
     }
 
+    // Rectangle {
+    //     opacity: root.win-opacity;
+    //     background: content-background;
+    //     @children
+    // }
+
     win:=Rectangle {
-        animate width,height {
-            duration: 0.5ms;
-            easing: cubic-bezier(0, 0.25, 0.75, 1);
-        }
         opacity: root.win-opacity;
         background: border-color;
+        border-radius: border-radius;
         VerticalLayout {
             TitleBar {
                 title-color: title-color;
@@ -126,13 +127,13 @@ export component CustomWindow inherits Window{
                 TouchArea {
                     moved => {
                         self.mouse-cursor = MouseCursor.move;
-                        drag-area-move(0, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                        drag-area-move(0, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
                     }
                     pointer-event(event) => {
-                        if(event.kind == PointerEventKind.up){
+                        if(event.kind != PointerEventKind.down){
                             self.mouse-cursor = MouseCursor.default;
                         }
-                        drag-area-event(event, self.mouse-x, self.mouse-y);
+                        drag-area-event(event, self.pressed-x, self.pressed-y);
                     }
                 }
                 HorizontalLayout {
@@ -188,16 +189,14 @@ export component CustomWindow inherits Window{
                     }
                 }
             }
-            VerticalLayout {
-                Rectangle {
-                    border-radius: border-radius;
-                    background: content-background;
-                    @children
-                }
+            Rectangle {
+                z:0;
+                border-radius: border-radius;
+                background: content-background;
+                @children
             }
             padding: root.border-width;
         }
-        border-radius: border-radius;
     }
 
     // 上边框点击区域
@@ -208,10 +207,10 @@ export component CustomWindow inherits Window{
         x: 0;
         y: 0;
         moved => {
-            drag-area-move(1, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(1, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
     
@@ -223,10 +222,10 @@ export component CustomWindow inherits Window{
         x: root.width - root.area-size;
         y: 0;
         moved => {
-            drag-area-move(2, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(2, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
 
@@ -238,10 +237,10 @@ export component CustomWindow inherits Window{
         x: 0;
         y: root.height - root.area-size;
         moved => {
-            drag-area-move(3, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(3, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
 
@@ -253,10 +252,10 @@ export component CustomWindow inherits Window{
         x: 0;
         y: 0;
         moved => {
-            drag-area-move(4, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(4, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
 
@@ -268,10 +267,10 @@ export component CustomWindow inherits Window{
         x: 0;
         y: 0;
         moved => {
-            drag-area-move(5, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(5, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
     // 右上角点击区域
@@ -282,10 +281,10 @@ export component CustomWindow inherits Window{
         x: root.width - root.area-size;
         y: 0;
         moved => {
-            drag-area-move(6, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(6, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
     //右下角点击区域
@@ -296,10 +295,10 @@ export component CustomWindow inherits Window{
         x: root.width - root.area-size;
         y: root.height - root.area-size;
         moved => {
-            drag-area-move(7, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(7, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
     //左下角点击区域
@@ -310,10 +309,10 @@ export component CustomWindow inherits Window{
         x: 0;
         y: root.height - root.area-size;
         moved => {
-            drag-area-move(8, self.mouse-x - drag-area-down.x, self.mouse-y - drag-area-down.y);
+                drag-area-move(8, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
         }
         pointer-event(event) => {
-            drag-area-event(event, self.mouse-x, self.mouse-y);
+            drag-area-event(event, self.pressed-x, self.pressed-y);
         }
     }
 }

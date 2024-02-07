@@ -1,0 +1,25 @@
+export component CustomButton inherits Rectangle{
+    in-out property <bool> dark:true;
+    in-out property <brush> bg: dark?#3737377f:#efefef7f;
+    in-out property <brush> br-color: dark?#ffffff9f:#2222229f;
+    in-out property <brush> text-color: dark?#dedede:#010101;
+    in-out property <length> font-size: 14px;
+    in-out property <string> text: "Button";
+    out property <bool> has-hover<=>touch.has-hover;
+    out property <bool> pressed<=>touch.pressed;
+    callback clicked();
+    background: touch.has-hover?touch.pressed?@linear-gradient(0deg,bg.darker(3%),bg):@linear-gradient(0deg,bg.darker(3%),bg).darker(1%):@linear-gradient(0deg,bg.darker(3%),bg).darker(2%);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: touch.has-hover?touch.pressed?@linear-gradient(0deg,br-color.darker(3%),br-color).transparentize(0.1):@linear-gradient(0deg,br-color.darker(3%),br-color):@linear-gradient(0deg,br-color.darker(3%),br-color).transparentize(0.2);
+    label:=Text {
+        text: text;
+        color: touch.has-hover?touch.pressed?text-color:text-color.transparentize(0.05):text-color.transparentize(0.1);
+        font-size: font-size;
+    }
+    touch:=TouchArea {
+        clicked => {
+            clicked();
+        }
+    }
+}
