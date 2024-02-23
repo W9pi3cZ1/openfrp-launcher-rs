@@ -1,8 +1,8 @@
-import { Translator } from "./translator.slint";
+import { Translator,TranslatorData } from "./translator.slint";
 
-export component en {
-    in property <string> version: "a0.0.0";
-    in property <string> username;
+export global en {
+    in property <string> version:TranslatorData.version;
+    in property <string> username:TranslatorData.username;
     in-out property <Translator> lang: {
         title: @tr("OpenFrp Launcher {0}",version),
         menu: "Menu",
@@ -17,13 +17,12 @@ export component en {
         light_mode: "Light",
         login_tips: @tr("Hello, {0}",username),
         no_login_tips: @tr("Please login"),
-        tunnel: "Tunnel",
-        console: "Console",
-        default-username:"Please login",
+        default_username:"Please login",
         login: "Login",
         email: "Email",
         password: "Password",
         email_placeholder: "Enter email",
         password_placeholder: "Enter password",
+        logging_in: "Logging in...",
     };
 }

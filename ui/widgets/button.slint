@@ -8,18 +8,26 @@ export component CustomButton inherits Rectangle{
     out property <bool> has-hover<=>touch.has-hover;
     out property <bool> pressed<=>touch.pressed;
     callback clicked();
-    background: touch.has-hover?touch.pressed?@linear-gradient(0deg,bg.darker(3%),bg):@linear-gradient(0deg,bg.darker(3%),bg).darker(1%):@linear-gradient(0deg,bg.darker(3%),bg).darker(2%);
+    background: touch.has-hover?touch.pressed?@linear-gradient(0deg,bg.transparentize(3%),bg):@linear-gradient(0deg,bg.transparentize(3%),bg).transparentize(4%):@linear-gradient(0deg,bg.transparentize(3%),bg).transparentize(6%);
     border-radius: 4px;
     border-width: 1px;
-    border-color: touch.has-hover?touch.pressed?@linear-gradient(0deg,br-color.darker(3%),br-color).transparentize(0.1):@linear-gradient(0deg,br-color.darker(3%),br-color):@linear-gradient(0deg,br-color.darker(3%),br-color).transparentize(0.2);
+    border-color: touch.has-hover?touch.pressed?@linear-gradient(0deg,br-color.transparentize(3%),br-color).transparentize(0.1):@linear-gradient(0deg,br-color.transparentize(3%),br-color):@linear-gradient(0deg,br-color.transparentize(3%),br-color).transparentize(0.2);
     label:=Text {
         text: text;
-        color: touch.has-hover?touch.pressed?text-color:text-color.transparentize(0.05):text-color.transparentize(0.1);
+        color: touch.has-hover?touch.pressed?text-color:text-color.transparentize(0.1):text-color.transparentize(0.15);
         font-size: font-size;
+        animate color{
+            duration: 200ms;
+            easing: ease-in-out;
+        }
     }
     touch:=TouchArea {
         clicked => {
             clicked();
         }
+    }
+    animate background,border-color{
+        duration: 200ms;
+        easing: ease-in-out;
     }
 }

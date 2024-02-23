@@ -1,0 +1,28 @@
+import { Translator,TranslatorData } from "./translator.slint";
+
+export global zh_hant {
+    in property <string> version:TranslatorData.version;
+    in property <string> username:TranslatorData.username;
+    in-out property <Translator> lang: {
+        title: @tr("OpenFrp 啓動器 {0}",version),
+        menu: "選單",
+        home:"首頁",
+        tunnel:"隧道",
+        console:"控制檯",
+        settings: "設定",
+        opacity: "不透明度",
+        language: "語言",
+        themes: "主題",
+        dark_mode: "深色",
+        light_mode: "淺色",
+        login_tips: @tr("你好，{0}",username),
+        no_login_tips: @tr("你還沒有登入哦"),
+        default_username:"請先登入",
+        login: "登入",
+        email: "郵箱",
+        password: "密碼",
+        email_placeholder: "請輸入郵箱",
+        password_placeholder: "請輸入密碼",
+        logging_in:"登入中...",
+    };
+}

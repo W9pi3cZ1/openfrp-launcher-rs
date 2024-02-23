@@ -1,0 +1,28 @@
+import { Translator,TranslatorData } from "./translator.slint";
+
+export global jp {
+    in property <string> version:TranslatorData.version;
+    in property <string> username:TranslatorData.username;
+    in-out property <Translator> lang: {
+        title: @tr("OpenFrp ランチャー {0}",version),
+        menu: "メニュー",
+        home:"ホームページ",
+        tunnel:"トンネル",
+        console:"コンソール",
+        settings: "設定",
+        opacity: "不透明度",
+        language: "言語",
+        themes: "テーマ",
+        dark_mode: "暗い",
+        light_mode: "淡",
+        login_tips: @tr("こんにちは、{0}",username),
+        no_login_tips: @tr("ログインしてください"),
+        default_username:"未ログイン",
+        login: "ログイン",
+        email: "電子メール",
+        password: "パスワード",
+        email_placeholder: "Eメールを入力",
+        password_placeholder: "パスワードを入力する",
+        logging_in:"ログイン...",
+    };
+}

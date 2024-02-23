@@ -8,7 +8,7 @@
 // import "../../fonts/MiSans-Regular.otf";
 // import "../../fonts/MiSans-Semibold.otf";
 // import "../../fonts/MiSans-Thin.otf";
-import { TitleBar } from "title-bar.slint";
+import { Frame } from "frame.slint";
 
 export component CustomWindow inherits Window{
     no-frame: true;
@@ -34,7 +34,7 @@ export component CustomWindow inherits Window{
 
     callback close();
     callback move(length,length);
-    callback debug(length);
+    callback debug(float);
     function resize(width:length,height:length) {
         root.width=(width >= root.min-width)?width:root.min-width;
         root.height=(height >= root.min-height)?height:root.min-height;
@@ -114,90 +114,108 @@ export component CustomWindow inherits Window{
     //     @children
     // }
 
-    win:=Rectangle {
+    win:=Frame {
+        background: root.border-color;
+        content-background: content-background;
+        title: root.title;
+        title-color: root.title-color;
         opacity: root.win-opacity;
-        background: border-color;
-        border-radius: border-radius;
-        VerticalLayout {
-            TitleBar {
-                title-color: title-color;
-                border-color: transparent;
-                title: root.title;
-                border-radius: border-radius;
-                TouchArea {
-                    moved => {
-                        self.mouse-cursor = MouseCursor.move;
-                        drag-area-move(0, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
-                    }
-                    pointer-event(event) => {
-                        if(event.kind != PointerEventKind.down){
-                            self.mouse-cursor = MouseCursor.default;
-                        }
-                        drag-area-event(event, self.pressed-x, self.pressed-y);
-                    }
-                }
-                HorizontalLayout {
-                    alignment: end;
-                    padding-left: parent.padding-width;
-                    padding-right: parent.padding-width;
-                    padding-top: parent.padding-height;
-                    padding-bottom: parent.padding-height;
-                    Rectangle {
-                        border-radius: 4px;
-                        width: 16px;
-                        height: 16px;
-                        background: touch.has-hover? touch.pressed? #ffffff9f : #ffffff7f : #ffffff3f;
-                        touch := TouchArea {
-                            clicked => { close() }
-                        }
-                        Image {
-                            width: 12px;
-                            height: 12px;
-                            image-fit: contain;
-                            colorize: #fefefe;
-                            source: @image-url("../../res/icons/window/close.svg");
-                            Image {
-                                x:0.25px;
-                                y:0.25px;
-                                width: 12px;
-                                height: 12px;
-                                opacity: 0.5;
-                                image-fit: contain;
-                                colorize: #fefefe;
-                                source: @image-url("../../res/icons/window/close.svg");
-                            }
-                        }
-                        // Text {
-                        //     vertical-alignment: center;
-                        //     color: #fefefe;
-                        //     // font-family: "MiSans";
-                        //     font-size: 12px;
-                        //     font-weight: 500;
-                        //     text: "×";
-                        //     Text {
-                        //         x:0.75px;
-                        //         y:0.75px;
-                        //         opacity: 0.5;
-                        //         vertical-alignment: center;
-                        //         color: #fefefe.darker(5%);
-                        //         // font-family: "MiSans";
-                        //         font-size: 12px;
-                        //         font-weight: 500;
-                        //         text: "×";
-                        //     }
-                        // }
-                    }
-                }
-            }
-            Rectangle {
-                z:0;
-                border-radius: border-radius;
-                background: content-background;
-                @children
-            }
-            padding: root.border-width;
+        bar-move(offset,x,y) => {
+            drag-area-move(offset,x,y);
         }
+        bar-drag(event,x,y) => {
+            drag-area-event(event,x,y);
+        }
+        close => {
+            close();
+        }
+        @children
     }
+
+    // win:=Rectangle {
+    //     opacity: root.win-opacity;
+    //     background: border-color;
+    //     border-radius: border-radius;
+    //     VerticalLayout {
+    //         TitleBar {
+    //             title-color: title-color;
+    //             border-color: transparent;
+    //             title: root.title;
+    //             border-radius: border-radius;
+    //             TouchArea {
+    //                 moved => {
+    //                     self.mouse-cursor = MouseCursor.move;
+    //                     drag-area-move(0, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
+    //                 }
+    //                 pointer-event(event) => {
+    //                     if(event.kind != PointerEventKind.down){
+    //                         self.mouse-cursor = MouseCursor.default;
+    //                     }
+    //                     drag-area-event(event, self.pressed-x, self.pressed-y);
+    //                 }
+    //             }
+    //             HorizontalLayout {
+    //                 alignment: end;
+    //                 padding-left: parent.padding-width;
+    //                 padding-right: parent.padding-width;
+    //                 padding-top: parent.padding-height;
+    //                 padding-bottom: parent.padding-height;
+    //                 Rectangle {
+    //                     border-radius: 4px;
+    //                     width: 16px;
+    //                     height: 16px;
+    //                     background: touch.has-hover? touch.pressed? #ffffff9f : #ffffff7f : #ffffff3f;
+    //                     touch := TouchArea {
+    //                         clicked => { close() }
+    //                     }
+    //                     Image {
+    //                         width: 12px;
+    //                         height: 12px;
+    //                         image-fit: contain;
+    //                         colorize: #fefefe;
+    //                         source: @image-url("../../res/icons/window/close.svg");
+    //                         Image {
+    //                             x:0.25px;
+    //                             y:0.25px;
+    //                             width: 12px;
+    //                             height: 12px;
+    //                             opacity: 0.5;
+    //                             image-fit: contain;
+    //                             colorize: #fefefe;
+    //                             source: @image-url("../../res/icons/window/close.svg");
+    //                         }
+    //                     }
+    //                     // Text {
+    //                     //     vertical-alignment: center;
+    //                     //     color: #fefefe;
+    //                     //     // font-family: "MiSans";
+    //                     //     font-size: 12px;
+    //                     //     font-weight: 500;
+    //                     //     text: "×";
+    //                     //     Text {
+    //                     //         x:0.75px;
+    //                     //         y:0.75px;
+    //                     //         opacity: 0.5;
+    //                     //         vertical-alignment: center;
+    //                     //         color: #fefefe.darker(5%);
+    //                     //         // font-family: "MiSans";
+    //                     //         font-size: 12px;
+    //                     //         font-weight: 500;
+    //                     //         text: "×";
+    //                     //     }
+    //                     // }
+    //                 }
+    //             }
+    //         }
+    //         Rectangle {
+    //             z:0;
+    //             border-radius: border-radius;
+    //             background: content-background;
+    //             @children
+    //         }
+    //         padding: root.border-width;
+    //     }
+    // }
 
     // 上边框点击区域
     top-border-touch:= TouchArea{

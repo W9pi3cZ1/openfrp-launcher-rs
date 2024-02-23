@@ -1,0 +1,165 @@
+// export component TitleBar {
+//     height: bar.min-height;
+//     min-width: bar.min-width;
+//     out property <length> padding-width: 8px;
+//     out property <length> padding-height: 6px;
+//     in-out property <string> title: "OpenFrp Launcher";
+//     in property <length> border-radius: 0px;
+//     in property <brush> title-color: #fefefe;
+//     in property <brush> border-color: transparent;
+//     preferred-width: 100%;
+//     bar:=Rectangle {
+//         x:0;
+//         y:0;
+//         border-radius: border-radius;
+//         height: self.min-height;
+//         background: border-color;
+//         HorizontalLayout {
+//             padding-left: padding-width;
+//             padding-right: padding-width;
+//             padding-top: padding-height;
+//             padding-bottom: padding-height;
+//             Text {
+//                 vertical-alignment: center;
+//                 font-size: 12px;
+//                 font-weight: 500;
+//                 // font-family: "MiSans";
+//                 text: title;
+//                 color: title-color;
+//                 Text {
+//                     x:0.75px;
+//                     y:0.75px;
+//                     opacity: 0.4;
+//                     vertical-alignment: center;
+//                     font-size: 12px;
+//                     font-weight: 500;
+//                     // font-family: "MiSans";
+//                     text: title;
+//                     color: title-color.darker(5%);
+//                 }
+//             }
+//         }
+//         @children
+//     }
+// }
+
+component TitleBar inherits Rectangle {
+    border-radius: 4px;
+    in-out property <string> title:"Titlebar";
+    in-out property <brush> title-color: #fff;
+    background: black;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    height: self.min-height;
+    callback move(int,length,length);
+    callback drag(PointerEvent,length,length);
+    callback close();
+    bar-touch:=TouchArea {
+        moved => {
+            self.mouse-cursor = MouseCursor.move;
+            root.move(0, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
+        }
+        pointer-event(event) => {
+            if(event.kind == PointerEventKind.up || event.kind == PointerEventKind.cancel){
+                self.mouse-cursor = MouseCursor.default;
+            }
+            drag(event, self.pressed-x, self.pressed-y);
+        }
+    }
+
+    layout:=HorizontalLayout{
+        padding-left: root.padding-left;
+        padding-right: root.padding-right;
+        padding-top: root.padding-top;
+        padding-bottom: root.padding-bottom;
+        alignment: space-between;
+        left:=Rectangle{
+            tit:=Text {
+                vertical-alignment: center;
+                text: title;
+                font-size: 12px;
+                font-weight: 500;
+                color: title-color;
+                tit-shadow:=Text{
+                    x:0.75px;
+                    y:0.75px;
+                    opacity: 0.4;
+                    vertical-alignment: center;
+                    text: title;
+                    font-size: 12px;
+                    color: title-color.darker(5%);
+                    font-weight: 500;
+                }
+            }
+        }
+        right:=Rectangle{
+            width: clo-btn.width;
+            clo-btn:=Rectangle{
+                border-radius: 4px;
+                width: 16px;
+                height: 16px;
+                background: btn-touch.has-hover? btn-touch.pressed? #ffffff9f : #ffffff7f : #ffffff3f;
+                clo-ico:=Image{
+                    width: 12px;
+                    height: 12px;
+                    source: @image-url("../../res/icons/window/close.svg");
+                    image-fit: contain;
+                    colorize: #fefefe;
+                    clo-ico-shadow:=Image{
+                        x:0.25px;
+                        y:0.25px;
+                        opacity: 0.4;
+                        width: 12px;
+                        height: 12px;
+                        source: @image-url("../../res/icons/window/close.svg");
+                        image-fit: contain;
+                        colorize: #fefefe;
+                    }
+                }
+                btn-touch:=TouchArea{
+                    clicked => {
+                        close();
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component Frame inherits Rectangle {
+    in-out property <brush> title-color:#fff;
+    in-out property <float> win-opacity:1;
+    in-out property <string> title:"Frame";
+    in-out property <brush> content-background:#eee;
+    background: black;
+    border-radius: 4px;
+    border-width: 2px;
+    callback close();
+    callback bar-move(int,length,length);
+    callback bar-drag(PointerEvent,length,length);
+    VerticalLayout {
+        TitleBar {
+            title-color: title-color;
+            title: title;
+            background: transparent;
+            close => {
+                close();
+            }
+            move(offset,x,y) => {
+                bar-move(offset,x,y);
+            }
+            drag(event,x,y) => {
+                bar-drag(event,x,y);
+            }
+        }
+        Rectangle {
+            z:0;
+            border-radius: root.border-radius;
+            background: root.content-background;
+            @children
+        }
+        padding: root.border-width;
+    }
+}

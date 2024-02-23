@@ -4,6 +4,9 @@ export component Page inherits Rectangle {
     in property <length> padding-width:16px;
     in property <length> padding-height:16px;
     in property <brush> header-color: @linear-gradient(135deg,#0060bf,#bf0020).darker(25%);
+    fs:=FocusScope {
+
+    }
     h:=Text {
         x:padding-width;
         y:padding-height;
@@ -31,7 +34,7 @@ export component Page inherits Rectangle {
         x:padding-width;
         y:h.height + padding-height;
         width: parent.width - 2 * padding-width;
-        height: parent.height - h.height - 2 * padding-height;
+        height: parent.height - h.height - 1 * padding-height;
         @children
     }
 }

@@ -16,12 +16,12 @@ import { HomePage } from "./pages/home-page.slint";
 import { SettingsPage } from "./pages/settings-page.slint";
 import { TunnelPage } from "./pages/tunnel-page.slint";
 import { ConsolePage } from "./pages/console-page.slint";
-import { zh-cn } from "../lang/zh_CN.slint";
-import { Translator } from "../lang/translator.slint";
-import { en } from "../lang/en.slint";
+import { Translator,TranslatorData } from "../lang/translator.slint";
+import { Lang } from "../lang/lang.slint";
 import { CustomDialog } from "widgets/dialog.slint";
 import { CustomLineEdit } from "widgets/line-edit.slint";
 import { CustomButton } from "widgets/button.slint";
+import { NoProgressLoading } from "widgets/load.slint";
 
 
 export { SettingsPage }
@@ -29,8 +29,10 @@ export { SettingsPage }
 export global User {
     in-out property <bool> logged_in;
     in-out property <string> name;
-    in-out property <image> avatar:@image-url("../res/icon.png");
+    in-out property <image> avatar:self.default-avatar;
     in-out property <bool> logging_in;
+    in-out property <bool> login_failed;
+    out property <image> default-avatar:@image-url("../res/icons/sidebar/user.svg");
     callback rfd-load-img();
     callback login(string,string);
 }
@@ -57,12 +59,7 @@ component SideBarItem inherits Rectangle {
 
 export component LoginDialog inherits Rectangle{
     property <string> title:lang-trans.login;
-    in-out property <int> lang;
-    zh_cn:=zh_cn {
-    }
-    en:=en {
-    }
-    property <Translator> lang_trans:[zh-cn.lang,en.lang][lang];
+    property <Translator> lang_trans:Lang.translator;
     // in-out property <bool> show:true;
     in-out property <bool> show;
     in-out property <bool> dark;
@@ -70,7 +67,7 @@ export component LoginDialog inherits Rectangle{
     in-out property <brush> dialog-bg:#efefef;
     in-out property <brush> dialog-border-color:#7777773f;
     in-out property <brush> context-bg:#fefefe;
-    in-out property <brush> mask-color:show?#3333337f:#33333300;
+    in-out property <brush> mask-color:show?(dark?#0707077f:#3333337f):transparent;
     callback open();
     open => {
         email-input.value="";
@@ -82,6 +79,10 @@ export component LoginDialog inherits Rectangle{
         touch:=TouchArea {
             width: show?parent.width:0;
             height: show?parent.height:0;
+        }
+        forward-focus: fs1;
+        fs1:=FocusScope {
+            visible: show;
         }
         border-radius: 4px;
         background: mask-color;
@@ -144,15 +145,45 @@ export component LoginDialog inherits Rectangle{
                     }
                 }
                 bottom:=HorizontalLayout{
-                    alignment: end;
+                    alignment: space-between;
+                    spacing: 5px;
+                    tips:=Rectangle{
+                        HorizontalLayout{
+                            alignment: start;
+                            spacing: 4px;
+                            opacity: User.logging_in?1:0;
+                            text:=Text {
+                                text: lang_trans.logging-in;
+                                color: sub-dialog.title-color;
+                                font-size: 14px;
+                            }
+                            load:=NoProgressLoading {
+                                y:parent.height/2 - self.height/2;
+                                opened: User.logging_in;
+                                height: 16px;
+                                width: 16px;
+                                duration: 400ms;
+                                TouchArea {
+                                    // clicked => {
+                                    //     User.logging_in = !User.logging_in;
+                                    // }
+                                }
+                            }
+                            animate opacity {
+                                duration: 100ms;
+                                easing: ease-in-out;
+                            }
+                        }
+                    }
                     submit:=CustomButton {
+                        y:parent.height/2 - self.height/2;
                         width: 80px;
                         dark: root.dark;
                         text: lang-trans.login;
                         height: 24px;
-                        bg: dark?#1575d5df:#0060c0df;
+                        bg: dark?#0060c0df:#0060c0cf;
                         text-color: #fefefe;
-                        br-color: dark?#1575d53f:#0060c03f;
+                        br-color: dark?#0060c07f:#0060c03f;
                         clicked => {
                             if(email_input.value != "" && password_input.value != ""){
                                 User.login(email_input.value,password_input.value);
@@ -172,33 +203,25 @@ export component LoginDialog inherits Rectangle{
                 duration: 100ms;
                 easing: cubic-bezier(0.5, 0.0, 0.5, 1);
             }
-            drop-shadow-blur: 2px;
-            drop-shadow-offset-x: 0px;
-            drop-shadow-offset-y: 0px;
-            drop-shadow-color: self.title-color.transparentize(0.8);
+            drop-shadow-blur: 4px;
+            drop-shadow-offset-x: 2px;
+            drop-shadow-offset-y: 2px;
+            drop-shadow-color: #777777.transparentize(0.4);
         }
     }
 }
 
 export component MainPage inherits CustomWindow {
     property <bool> dark;
-    property <string> version: "a0.0.190";
-    property <int> lang: 0;
+    property <string> version <=> TranslatorData.version;
     title-color: dark?#fefefedf:#fefefecf;
     property <brush> page-header-color:dark?@linear-gradient(135deg,#eeeaffdf,#ffceeaef):@linear-gradient(135deg,#0058cfdf,#ef0028ef).darker(250%);
     property <brush> sbar-i-color-sel:dark?@linear-gradient(135deg,#40b8ffef,#ff4068ef):@linear-gradient(135deg,#0078ef,#ef0028);
     property <brush> sbar-i-color-unsel:dark?@linear-gradient(135deg,#d7eaff5f,#ffd7ee5f):@linear-gradient(135deg,#1b3b6baf,#381828af);
-    border-color: dark?@linear-gradient(135deg,#1a2633,#331a1e):@linear-gradient(135deg,#0078effe,#0078efcf).darker(5%);
-    min-height: 350px;
+    border-color: dark?@linear-gradient(135deg,#1f1f1ffe,#202020ef):@linear-gradient(135deg,#0078effe,#0078efcf).darker(5%);
     min-width: 400px;
     property <int> active_page: 0;
-    zh_cn:=zh_cn {
-        version: version;
-    }
-    en:=en {
-        version: version;
-    }
-    property <Translator> lang_trans:[zh-cn.lang,en.lang][lang];
+    property <Translator> lang_trans:Lang.translator;
     in-out property <string> username: User.logged-in?User.name:lang-trans.default-username;
     in-out property <image> user_avatar: User.logged-in?User.avatar:@image-url("../res/icons/sidebar/user.svg");
     // default-font-family: "MiSans";
@@ -211,7 +234,7 @@ export component MainPage inherits CustomWindow {
     callback close_win();
     callback move_win(length,length);
     callback get_win_pos() -> {x:length,y:length};
-    callback dbug(length);
+    callback dbug(float);
     animate border-color,title-color {
         duration: 75ms;
         easing: cubic-bezier(0, 0.0, 0.75, 1);
@@ -224,6 +247,7 @@ export component MainPage inherits CustomWindow {
     init => {
         self.width = self.preferred-width;
         self.height = self.preferred-height;
+        self.version = "a0.0.195";
     }
 
     update-pos => {
@@ -241,7 +265,6 @@ export component MainPage inherits CustomWindow {
     ld:=LoginDialog {
         z:99;
         dark <=> root.dark;
-        lang <=> root.lang;
         // x:0px;
         // y:0px;
         width: self.show?100%:100%;
@@ -269,303 +292,350 @@ export component MainPage inherits CustomWindow {
     HorizontalLayout {
         sidebar:= Rectangle {
             property <bool> minimized: false;
-            property <length> minimized-width: 48px;
-            background: dark?#ffffff03:#0000000f;
-            property <length> padding-y: 16px;
+            property <length> minimized-width: 18px+16px+16px;
+            background: dark?#ffffff07:#0000000f;
+            property <length> padding-y: 20px;
             width: minimized?minimized-width:128px;
             animate width {
                 duration: 200ms;
                 easing: cubic-bezier(0.75, 0.0, 0.25, 1);
             }
-            no-backward:=VerticalLayout {
-                padding-top: padding-y + self.spacing;
-                padding-bottom: padding-y + self.spacing;
-                spacing: 4px;
-                alignment: start;
-                height: parent.height;
-                for items[index] in [
+            VerticalLayout {
+                alignment: space-between;
+                padding-top: padding-y;
+                padding-bottom: padding-y;
+                property <[{text:string,icon:image,reverse:bool,function:string,no-colorize-icon:bool,page:int}]> items: [
                     {
-                        text:lang-trans.menu,
-                        icon:@image-url("../res/icons/sidebar/menu.svg"),
-                        func: "menu",
+                        text: lang_trans.menu,
+                        icon: @image-url("../res/icons/sidebar/menu.svg"),
+                        function: "menu",
+                        page:-1,
                     },
                     {
-                        text:username,
-                        icon:user-avatar,
-                        no-colorize:User.logged-in,
-                        func: "user",
-                        // img-rendering:User.logged-in?ImageRendering.pixelated:ImageRendering.smooth,
+                        text: username,
+                        icon: user_avatar,
+                        no-colorize-icon: User.logged_in,
+                        function: "user",
+                        page:-1,
                     },
                     {
                         text:lang-trans.home,
                         icon:@image-url("../res/icons/sidebar/home.svg"),
+                        page:0,
                     },
                     {
                         text:lang-trans.tunnel,
                         icon:@image-url("../res/icons/sidebar/tunnel.svg"),
+                        page:1,
                     },
                     {
                         text:lang-trans.console,
                         icon:@image-url("../res/icons/sidebar/console.svg"),
+                        page:2,
                     },
-                ]: SideBarItem {
-                    property <int> page: index - 2;
-                    property <bool> actived: active_page == page;
-                    activate => {
-                        if(items.func == "menu"){
-                            minimized=!minimized;
-                        }else if(items.func == "user"){
-                            ld.open();
-                        }else{
-                            root.active-page = page;
-                        }
-                    }
-                    x:0;
-                    width: minimized?minimized-width:128px;
-                    height: self.min-height;
-                    border-radius: root.border-radius;
-                    background: root.dark?(self.has-hover?#ffffff03:transparent):(self.has-hover?#00000007:transparent);
-                    animate width,background {
-                        duration: 200ms;
-                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                    }
-                    Rectangle {
-                        width: parent.width;
-                        background: root.dark?(actived?#ffffff0f:transparent):(actived?#0000001f:transparent);
-                        border-radius: root.border-radius;
-                        property <bool> is_avatar: items.func == "user";
-                        layout1:=HorizontalLayout {
-                            padding: 12px;
-                            padding-left: is_avatar?16px - 4px:16px;
-                            padding-right: 16px;
-                            spacing: 16px;
-                            alignment: space-between;
-                            icon1:=Image {
-                                height: is_avatar?title1.min-height + 8px:title1.min-height;
-                                width: is_avatar?title1.min-height + 8px:title1.min-height;
-                                source: items.icon;
-                                image-fit: contain;
-                                image-rendering: smooth;
-                                colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
-                                animate colorize {
-                                    duration: 200ms;
-                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                }
-                                icon_sd1:=Image {
-                                    opacity: 0.4;
-                                    image-fit: contain;
-                                    x:(actived)?0.80px:0.50px;
-                                    y:(actived)?0.80px:0.50px;
-                                    height: is_avatar?title1.min-height + 8px:title1.min-height;
-                                    width: is_avatar?title1.min-height + 8px:title1.min-height;
-                                    image-rendering: smooth;
-                                    source: items.icon;
-                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,colorize {
-                                        duration: 200ms;
-                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                    }
-                                }
-                                icon_sd2:=Image {
-                                    opacity: 0.4;
-                                    image-fit: contain;
-                                    x:(actived)?-0.60px:-0.50px;
-                                    y:(actived)?-0.60px:-0.50px;
-                                    height: is_avatar?title1.min-height + 8px:title1.min-height;
-                                    width: is_avatar?title1.min-height + 8px:title1.min-height;
-                                    image-rendering: smooth;
-                                    source: items.icon;
-                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,colorize {
-                                        duration: 200ms;
-                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                    }
-                                }
-                            }
-                            title1:=Text {
-                                height: icon1.height+parent.padding-top+parent.padding-bottom;
-                                vertical-alignment: center;
-                                opacity: minimized?0:1;
-                                font-weight: 500;
-                                text: items.text;
-                                font-size: 12px;
-                                color: (actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
-                                animate opacity,color {
-                                    duration: 200ms;
-                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                }
-                                Text {
-                                    height: icon1.height+parent.padding-top+parent.padding-bottom;
-                                    vertical-alignment: center;
-                                    x:(actived)?0.90px:0.10px;
-                                    y:(actived)?0.90px:0.10px;
-                                    opacity: 0.4;
-                                    font-weight: 500;
-                                    text: items.text;
-                                    font-size: 12px;
-                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,color {
-                                        duration: 200ms;
-                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                    }
-                                }
-                                Text {
-                                    height: icon1.height+parent.padding-top+parent.padding-bottom;
-                                    vertical-alignment: center;
-                                    x:(actived)?-0.45px:-0.05px;
-                                    y:(actived)?-0.45px:-0.05px;
-                                    opacity: 0.4;
-                                    font-weight: 500;
-                                    text: items.text;
-                                    font-size: 12px;
-                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,color {
-                                        duration: 200ms;
-                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                    }
-                                }
-                            }
-                        }
-                        init => {
-                            minimized-width = icon1.width+layout1.padding-left+layout1.padding-right;
-                        }
-                        animate background {
-                            duration: 200ms;
-                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                        }
-                    }
-                }
-            }
-            backward:=VerticalLayout{
-                alignment: end;
-                padding-top: padding-y + self.spacing;
-                padding-bottom: padding-y + self.spacing;
-                spacing: 4px;
-                height: parent.height;
-                for items[index] in [
                     {
                         text:lang-trans.settings,
                         icon:@image-url("../res/icons/sidebar/settings.svg"),
-                        func:"settings",
-                        no-colorize:false,
+                        reverse:true,
+                        page:3,
                     },
-                ]: SideBarItem {
-                    property <int> page:index + 3;
-                    property <bool> actived: active_page == page;
-                    activate => {
-                        root.active-page = page;
-                    }
+                ];
+                height: parent.height;
+                top:=VerticalLayout{
                     x:0;
-                    width: minimized?minimized-width:128px;
-                    height: self.min-height;
-                    border-radius: root.border-radius;
-                    background: root.dark?(self.has-hover?#ffffff03:transparent):(self.has-hover?#00000007:transparent);
-                    animate width,background {
-                        duration: 200ms;
-                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                    for items[index] in items:VerticalLayout{
+                        // padding-top: !items.reverse?4px:0px;
+                        padding-bottom: !items.reverse?4px:0px;
+                        if !items.reverse:SideBarItem{
+                            x:0;
+                            property <bool> is_user_item:items.function=="user";
+                            activate => {
+                                if(items.function==""){
+                                    root.active_page = items.page;
+                                }else if(items.function=="menu"){
+                                    minimized=!minimized;
+                                }else if(items.function=="user"){
+                                    ld.open();
+                                }
+                            }
+                            background: self.has-hover?(
+                                    self.actived?
+                                    (
+                                        root.dark?
+                                        (
+                                            #ffffff12
+                                        ):(
+                                            #00000026
+                                        )
+                                    ):(
+                                        root.dark?
+                                        (
+                                            #ffffff03
+                                        ):(
+                                            #00000007
+                                        )
+                                    )
+                                )
+                                :
+                                (
+                                    self.actived?
+                                    (
+                                        root.dark?
+                                        (
+                                            #ffffff0f
+                                        ):(
+                                            #0000001f
+                                        )
+                                    ):(
+                                        transparent
+                                    )
+                                );
+                            border-radius: root.border-radius;
+                            height: self.min-height;
+                            width: minimized?minimized-width:128px;
+                            property <bool> actived: root.active_page == items.page;
+                            animate width,background {
+                                duration: 200ms;
+                                easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                            }
+                            HorizontalLayout {
+                                padding: 12px;
+                                padding-left: is_user_item?16px - 4px:16px;
+                                padding-right: 16px;
+                                spacing: 16px;
+                                alignment: space-between;
+                                Image {
+                                    height: is_user_item?18px + 8px:18px;
+                                    width: self.height;
+                                    source: items.icon;
+                                    image-fit: contain;
+                                    colorize: items.no-colorize-icon?#0000:actived?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                    animate colorize {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                    Image {
+                                        opacity: 0.4;
+                                        x:(actived)?0.50px:0.30px;
+                                        y:(actived)?0.50px:0.30px;
+                                        height: parent.height;
+                                        width: self.height;
+                                        source: items.icon;
+                                        image-fit: contain;
+                                        colorize: items.no-colorize-icon?#0000:actived?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                        animate x,y,colorize {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
+                                    }
+                                    Image {
+                                        opacity: 0.4;
+                                        x:(actived)?-0.50px:-0.30px;
+                                        y:(actived)?-0.50px:-0.30px;
+                                        height: parent.height;
+                                        width: self.height;
+                                        source: items.icon;
+                                        image-fit: contain;
+                                        colorize: items.no-colorize-icon?#0000:actived?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                        animate x,y,colorize {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
+                                    }
+                                }
+                                Text {
+                                    height: self.min-height;
+                                    width: self.min-width;
+                                    text: items.text;
+                                    vertical-alignment: center;
+                                    color: actived?sbar-i-color-sel: sbar-i-color-unsel;
+                                    opacity: minimized?0:1;
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    animate opacity,color {
+                                        duration: 200ms;
+                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                    Text {
+                                        height: self.min-height;
+                                        width: self.min-width;
+                                        text: items.text;
+                                        vertical-alignment: center;
+                                        opacity: 0.4;
+                                        font-size: 12px;
+                                        font-weight: 500;
+                                        x:(actived)?0.50px:0.10px;
+                                        y:(actived)?0.50px:0.10px;
+                                        color: actived?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                        animate x,y,color {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
+                                    }
+                                    Text {
+                                        height: self.min-height;
+                                        width: self.min-width;
+                                        text: items.text;
+                                        vertical-alignment: center;
+                                        opacity: 0.4;
+                                        font-size: 12px;
+                                        font-weight: 500;
+                                        x:(actived)?-0.50px:-0.10px;
+                                        y:(actived)?-0.50px:-0.10px;
+                                        color: actived?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                        animate x,y,color {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    Rectangle {
-                        width: parent.width;
-                        background: root.dark?(actived?#ffffff0f:transparent):(actived?#0000001f:transparent);
-                        border-radius: root.border-radius;
-                        layout:=HorizontalLayout {
-                            padding: 12px;
-                            padding-left: 16px;
-                            padding-right: 16px;
-                            spacing: 16px;
-                            alignment: space-between;
-                            icon:=Image {
-                                property <bool> is_avatar: items.func == "user";
-                                height: is_avatar?title.min-height + 5px:title.min-height;
-                                width: is_avatar?title.min-height + 5px:title.min-height;
-                                source: items.icon;
-                                image-fit: contain;
-                                colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
-                                animate colorize {
-                                    duration: 200ms;
-                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                }
-                                icon_sd:=Image {
-                                    opacity: 0.4;
-                                    image-fit: contain;
-                                    x:(actived)?0.80px:0.50px;
-                                    y:(actived)?0.80px:0.50px;
-                                    height: is_avatar?title.min-height + 8px:title.min-height;
-                                    width: is_avatar?title.min-height + 8px:title.min-height;
-                                    image-rendering: smooth;
+                }
+                bottom:=VerticalLayout{
+                    x:0;
+                    alignment: end;
+                    for items[index] in items:VerticalLayout{
+                        padding-bottom: items.reverse?4px:0px;
+                        // padding-top: items.reverse?4px:0px;
+                        if items.reverse:SideBarItem{
+                            x:0;
+                            activate => {
+                                root.active_page = items.page;
+                            }
+                            background: self.has-hover?(
+                                self.actived?
+                                (
+                                    root.dark?
+                                    (
+                                        #ffffff12
+                                    ):(
+                                        #00000026
+                                    )
+                                ):(
+                                    root.dark?
+                                    (
+                                        #ffffff03
+                                    ):(
+                                        #00000007
+                                    )
+                                )
+                            )
+                            :
+                            (
+                                self.actived?
+                                (
+                                    root.dark?
+                                    (
+                                        #ffffff0f
+                                    ):(
+                                        #0000001f
+                                    )
+                                ):(
+                                    transparent
+                                )
+                            );
+                            border-radius: root.border-radius;
+                            height: self.min-height;
+                            width: minimized?minimized-width:128px;
+                            property <bool> actived: root.active_page == items.page;
+                            animate width,background {
+                                duration: 200ms;
+                                easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                            }
+                            HorizontalLayout {
+                                padding: 12px;
+                                padding-left: 16px;
+                                padding-right: 16px;
+                                spacing: 16px;
+                                alignment: space-between;
+                                Image {
+                                    height: 18px;
+                                    width: self.height;
                                     source: items.icon;
-                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,colorize {
+                                    image-fit: contain;
+                                    colorize: items.no-colorize-icon?#0000:actived?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                    animate colorize {
                                         duration: 200ms;
                                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                                     }
+                                    Image {
+                                        opacity: 0.4;
+                                        x:(actived)?0.50px:0.30px;
+                                        y:(actived)?0.50px:0.30px;
+                                        height: parent.height;
+                                        width: self.height;
+                                        source: items.icon;
+                                        image-fit: contain;
+                                        colorize: items.no-colorize-icon?#0000:actived?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                        animate x,y,colorize {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
+                                    }
+                                    Image {
+                                        opacity: 0.4;
+                                        x:(actived)?-0.50px:-0.30px;
+                                        y:(actived)?-0.50px:-0.30px;
+                                        height: parent.height;
+                                        width: self.height;
+                                        source: items.icon;
+                                        image-fit: contain;
+                                        colorize: items.no-colorize-icon?#0000:actived?root.sbar-i-color-sel:root.sbar-i-color-unsel;
+                                        animate x,y,colorize {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
+                                    }
                                 }
-                                icon_sd3:=Image {
-                                    opacity: 0.4;
-                                    image-fit: contain;
-                                    x:(actived)?-0.60px:-0.50px;
-                                    y:(actived)?-0.60px:-0.50px;
-                                    height: is_avatar?title.min-height + 8px:title.min-height;
-                                    width: is_avatar?title.min-height + 8px:title.min-height;
-                                    image-rendering: smooth;
-                                    source: items.icon;
-                                    colorize: items.no-colorize?#0000:(actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,colorize {
+                                Text {
+                                    height: self.min-height;
+                                    width: self.min-width;
+                                    text: items.text;
+                                    vertical-alignment: center;
+                                    color: actived?sbar-i-color-sel: sbar-i-color-unsel;
+                                    opacity: minimized?0:1;
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    animate opacity,color {
                                         duration: 200ms;
                                         easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                    }
+                                    Text {
+                                        height: self.min-height;
+                                        width: self.min-width;
+                                        text: items.text;
+                                        vertical-alignment: center;
+                                        opacity: 0.4;
+                                        font-size: 12px;
+                                        font-weight: 500;
+                                        x:(actived)?0.90px:0.10px;
+                                        y:(actived)?0.90px:0.10px;
+                                        color: actived?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                        animate x,y,color {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
+                                    }
+                                    Text {
+                                        height: self.min-height;
+                                        width: self.min-width;
+                                        text: items.text;
+                                        vertical-alignment: center;
+                                        opacity: 0.4;
+                                        font-size: 12px;
+                                        font-weight: 500;
+                                        x:(actived)?-0.45px:-0.05px;
+                                        y:(actived)?-0.45px:-0.05px;
+                                        color: actived?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
+                                        animate x,y,color {
+                                            duration: 200ms;
+                                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
+                                        }
                                     }
                                 }
                             }
-                            title:=Text {
-                                height: icon.height+parent.padding-top+parent.padding-bottom;
-                                vertical-alignment: center;
-                                opacity: minimized?0:1;
-                                font-weight: 500;
-                                text: items.text;
-                                font-size: 12px;
-                                color: (actived)?root.sbar-i-color-sel:root.sbar-i-color-unsel;
-                                animate opacity,color {
-                                    duration: 200ms;
-                                    easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                }
-                                Text {
-                                    height: icon.height+parent.padding-top+parent.padding-bottom;
-                                    vertical-alignment: center;
-                                    x:(actived)?0.90px:0.10px;
-                                    y:(actived)?0.90px:0.10px;
-                                    opacity: 0.4;
-                                    font-weight: 500;
-                                    text: items.text;
-                                    font-size: 12px;
-                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,color {
-                                        duration: 200ms;
-                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                    }
-                                }
-                                Text {
-                                    height: icon.height+parent.padding-top+parent.padding-bottom;
-                                    vertical-alignment: center;
-                                    x:(actived)?-0.45px:-0.05px;
-                                    y:(actived)?-0.45px:-0.05px;
-                                    opacity: 0.4;
-                                    font-weight: 500;
-                                    text: items.text;
-                                    font-size: 12px;
-                                    color: (actived)?root.sbar-i-color-sel.darker(5%):root.sbar-i-color-unsel.darker(5%);
-                                    animate x,y,color {
-                                        duration: 200ms;
-                                        easing: cubic-bezier(0.75, 0.0, 0.25, 1);
-                                    }
-                                }
-                            }
-                        }
-                        init => {
-                            minimized-width = icon.width+layout.padding-left+layout.padding-right;
-                        }
-                        animate background {
-                            duration: 200ms;
-                            easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                         }
                     }
                 }
@@ -575,7 +645,6 @@ export component MainPage inherits CustomWindow {
             border-radius: 4px;
             // clip: true;
             HomePage {
-                lang<=>lang;
                 logged-in<=>User.logged-in;
                 username<=>User.name;
                 rfd-load-img => {
@@ -591,12 +660,12 @@ export component MainPage inherits CustomWindow {
                 opacity: actived?1:0;
                 animate opacity {
                     // delay: actived?200ms:0ms;
-                    duration: 200ms;
+                    duration: 250ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 animate x,y {
-                    delay: 100ms;
-                    duration: 1ms;
+                    delay: 125ms;
+                    duration: 1.5ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 // animate width,height {
@@ -606,7 +675,6 @@ export component MainPage inherits CustomWindow {
                 // }
             }
             TunnelPage {
-                lang <=> lang;
                 property <bool> actived: root.active-page==1;
                 property <bool> actived_in_up: root.active_page<1;
                 x:0px;
@@ -617,12 +685,12 @@ export component MainPage inherits CustomWindow {
                 opacity: actived?1:0;
                 animate opacity {
                     // delay: actived?200ms:0ms;
-                    duration: 200ms;
+                    duration: 250ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 animate x,y {
-                    delay: 100ms;
-                    duration: 1ms;
+                    delay: 125ms;
+                    duration: 1.5ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 // animate width,height {
@@ -632,7 +700,6 @@ export component MainPage inherits CustomWindow {
                 // }
             }
             ConsolePage {
-                lang<=>lang;
                 property <bool> actived: root.active-page==2;
                 property <bool> actived_in_up: root.active_page<2;
                 x:0px;
@@ -643,12 +710,12 @@ export component MainPage inherits CustomWindow {
                 opacity: actived?1:0;
                 animate opacity {
                     // delay: actived?200ms:0ms;
-                    duration: 200ms;
+                    duration: 250ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 animate x,y {
-                    delay: 100ms;
-                    duration: 1ms;
+                    delay: 125ms;
+                    duration: 1.5ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 // animate width,height {
@@ -658,7 +725,6 @@ export component MainPage inherits CustomWindow {
                 // }
             }
             SettingsPage {
-                lang <=> lang;
                 property <bool> actived: root.active-page==3;
                 property <bool> actived_in_up: root.active_page<3;
                 x:0px;
@@ -671,12 +737,12 @@ export component MainPage inherits CustomWindow {
                 opacity: actived?1:0;
                 animate opacity {
                     // delay: actived?200ms:0ms;
-                    duration: 200ms;
+                    duration: 250ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 animate x,y {
-                    delay: 100ms;
-                    duration: 1ms;
+                    delay: 125ms;
+                    duration: 1.5ms;
                     easing: cubic-bezier(0.75, 0.0, 0.25, 1);
                 }
                 // animate width,height {

@@ -2,14 +2,13 @@ export component CustomDialog inherits Rectangle {
     in-out property <string> title:"Dialog";
     in-out property <bool> dark:true;
     in-out property <brush> title-color:dark?#dedede:#010101;
-    in-out property <brush> dialog-bg:dark?#303030:#efefef;
+    in-out property <brush> dialog-bg:dark?#272727:#efefef;
     in-out property <brush> dialog-border-color:dark?#7777775f:#7777773f;
-    in-out property <brush> context-bg:dark?#2b2b2b:#fefefe;
+    in-out property <brush> context-bg:dark?#1f1f1f:#fefefe;
     callback close();
     background: @linear-gradient(0deg,dialog-bg.darker(5%),dialog-bg);
-    border-radius: 6px;
-    // clip: true;
-    border-color: @linear-gradient(0deg,dialog-border-color.darker(5%).transparentize(0.3),dialog-border-color.transparentize(0.3));
+    border-radius: 8px;
+    border-color: @linear-gradient(0deg,dialog-border-color.transparentize(0.25),dialog-border-color);
     border-width: 1px;
     VerticalLayout {
         padding: 1px;
@@ -67,7 +66,7 @@ export component CustomDialog inherits Rectangle {
         context-view:=Rectangle {
             background: context-bg;
             // clip: true;
-            border-color: @linear-gradient(0deg,dialog-border-color.darker(5%),dialog-border-color);
+            border-color: @linear-gradient(180deg,dialog-border-color,transparent);
             border-radius: root.border-radius;
             border-width: 0.8px;
             @children

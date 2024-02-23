@@ -29,11 +29,9 @@
 //     Close {
 //     }
 // }
-export component RadiusLine inherits Rectangle{
-    // property <bool> is_horizontal: false;
-    border-radius: min(0.5 * self.height,0.5*self.width);
-    background: #0060c0;
-}
+
+import { RadiusLine } from "./radius-line.slint";
+export { RadiusLine }
 
 export component ComboBox inherits Rectangle {
     in-out property <string> current-value: "Demo";

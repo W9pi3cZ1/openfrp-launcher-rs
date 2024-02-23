@@ -1,9 +1,8 @@
 import { Page } from "page.slint";
 import { Slider , ScrollView} from "std-widgets.slint";
 import { ComboBox } from "../widgets/combo-box.slint";
-import { zh-cn } from "../../lang/zh_CN.slint";
-import { en } from "../../lang/en.slint";
-import { Translator } from "../../lang/translator.slint";
+import { Lang } from "../../lang/lang.slint";
+import { Translator,TranslatorData } from "../../lang/translator.slint";
 
 component SettingsOption inherits Rectangle {
     in property <string> name: "Title";
@@ -57,12 +56,7 @@ component SettingsOption inherits Rectangle {
 }
 
 export component SettingsPage inherits Page {
-    zh-cn:=zh-cn {
-    }
-    en:=en {
-    }
-    in-out property <int> lang:0;
-    property <Translator> lang-trans: [zh-cn.lang,en.lang][lang];
+    property <Translator> lang-trans: Lang.translator;
     header: lang-trans.settings;
     in-out property <bool> dark:false;
     in-out property <brush> option-colorize: dark?@linear-gradient(135deg,#d4d4d4af,#d7d7d7af):@linear-gradient(135deg,#2b2b2baf,#282828af);
@@ -85,7 +79,7 @@ export component SettingsPage inherits Page {
         x:0px;
         y:0px;
         width: parent.width - 20px;
-        viewport-height: layout.min-height + 80px;
+        viewport-height: layout.min-height + 32px * 4;
         FocusScope {
             width: parent.width;
             height: parent.height;
@@ -163,11 +157,11 @@ export component SettingsPage inherits Page {
                         border-color: (dark?option-bg-color:option-bg-color).mix(#777,0.75);
                         popup-bg-color: dark?#1f1f1f:#fdfdfd;
                         popup-border-color: self.border-color;
-                        current-value: "中文";
+                        current-value: "简体中文";
                         width: 100px;
-                        values: ["中文","English"];
+                        values: ["简体中文","繁體中文","English","日本語"];
                         selected => {
-                            lang = self.current-index;
+                            Lang.index = self.current-index;
                             root.language-changed();
                         }
                     }

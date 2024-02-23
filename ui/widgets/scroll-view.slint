@@ -1,0 +1,70 @@
+export component ScrollView {
+    in-out property <bool> control;
+    in-out property <length> viewport-x:0;
+    in-out property <length> viewport-y:0;
+    in-out property <length> viewport-width;
+    in-out property <length> viewport-height;
+    in-out property <duration> duration:0ms;
+    preferred-width: 100%;
+    preferred-height: 100%;
+    Rectangle {
+        x:0;
+        y:0;
+        width: root.width;
+        height: root.height;
+        clip: true;
+        TouchArea {
+            scroll-event(event) => {
+                root.duration = 100ms;
+                viewport-y = min(max(viewport-y + event.delta-y / 1.5,self.height - viewport-height),0);
+                // viewport-y = viewport-y + event.delta-y / 1.2;
+                reject
+            }
+            pointer-event(event) => {
+                if(event.kind == PointerEventKind.move && self.pressed){
+                    root.duration = 0ms;
+                    viewport-y = min(max(viewport-y - (self.pressed-y - self.mouse-y) / 1.5,self.height - viewport-height),0);
+                    // viewport-y = viewport-y - ((self.pressed-y - self.mouse-y) / 3);
+                }
+            }
+        }
+        children:=Rectangle {
+            x:viewport-x;
+            y:viewport-y;
+            width: viewport-width;
+            height: viewport-height;
+            @children
+            animate y {
+                duration: duration;
+                easing: ease-in-out;
+            }
+        }
+    }
+}
+
+component Test inherits Rectangle{
+    ScrollView {
+        // width: 100%;
+        // height: 100%;
+        viewport-height: 1000px;
+        viewport-width: parent.width;
+        Rectangle {
+            x:0;
+            y:0;
+            width: 5px;
+            height: 5px;
+            background: red;
+        }
+        Text {
+            text: "Hello";
+            color:red;
+        }
+        Rectangle {
+            x:0;
+            y:parent.viewport-height - self.height;
+            width: 5px;
+            height: 5px;
+            background: red;
+        }
+    }
+}

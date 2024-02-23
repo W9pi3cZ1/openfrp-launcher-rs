@@ -12,12 +12,16 @@ export struct Translator {
     light_mode:string,
     no_login_tips:string,
     login_tips:string,
-    tunnel:string,
-    console:string,
-    default-username:string,
+    default_username:string,
     login:string,
     email:string,
     password:string,
     email_placeholder:string,
     password_placeholder:string,
+    logging_in:string,
+}
+
+export global TranslatorData {
+    in-out property <string> version;
+    in-out property <string> username;
 }

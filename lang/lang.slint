@@ -1,0 +1,15 @@
+import { Translator } from "./translator.slint";
+import { en } from "./en.slint";
+import { zh_hans } from "./zh_hans.slint";
+import { zh_hant } from "./zh_hant.slint";
+import { jp } from "./jp.slint";
+
+export global Lang {
+    in-out property <int> index:0;
+    in-out property <Translator> translator:[
+        zh-hans.lang,
+        zh-hant.lang,
+        en.lang,
+        jp.lang
+    ][index];
+}

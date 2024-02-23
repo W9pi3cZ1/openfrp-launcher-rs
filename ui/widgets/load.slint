@@ -1,0 +1,19 @@
+import { RadiusLine } from "radius-line.slint";
+export component NoProgressLoading inherits RadiusLine{
+    property <angle> angle:animating?360deg * animation-tick() / duration:0deg;
+    background: #0000;
+    border-color: @linear-gradient(angle,#77777733,#77777733,#77777733,#77777733,#0077ee,#0077ee,#0077ee,#0077ee,#0077ee);
+    border-width: 3px;
+    in-out property <bool> animating:opened;
+    in-out property <bool> opened:true;
+    in-out property <duration> duration:600ms;
+
+    init => {
+        opened = true;
+    }
+
+    // animate angle {
+    //     duration: duration;
+    //     easing: ease-in-out;
+    // }
+}

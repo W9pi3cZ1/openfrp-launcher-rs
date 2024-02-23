@@ -1,6 +1,6 @@
 [package]
 name = "openfrp-launcher"
-version = "0.0.190"
+version = "0.0.195"
 edition = "2021"
 build = "build.rs"
 
@@ -8,7 +8,7 @@ build = "build.rs"
 slint = { "version" = "1.4.1", "features" = ["gettext"] }
 reqwest = { version = "0.11.23",features = ["blocking"]}
 tokio = { version = "1", features = ["full"]}
-rfd = "0.13.0"
+rfd = "^0.13.0"
 md-5 = "0.10.6"
 image = "0.24.8"
 
@@ -22,7 +22,8 @@ inherits = "dev"
 opt-level = 3
 
 [profile.release]
-lto = "thin"
-opt-level = "s"
+lto = true
+opt-level = "z"
 strip = true
 panic = "abort"
+codegen-units = 1
